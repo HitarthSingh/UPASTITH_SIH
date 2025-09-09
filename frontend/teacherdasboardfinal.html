@@ -77,7 +77,7 @@
              HEADER SECTION
              This contains the dashboard title and the teacher's profile info.
              It's sticky, meaning it stays at the top of the screen when scrolling.
-        ================================================================== -->
+         ================================================================== -->
         <header class="glass-card sticky top-4 z-50 mx-auto max-w-7xl w-full rounded-2xl">
             <div class="px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
@@ -104,7 +104,7 @@
                     <!-- =================================================================
                          LEFT COLUMN
                          This column holds key analytics and informational cards.
-                    ================================================================== -->
+                     ================================================================== -->
                     <div class="lg:col-span-1 space-y-6">
                         
                         <!-- FEATURE CARD: Attendance Analytics -->
@@ -142,51 +142,25 @@
                              <div id="eventsList" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
                              </div>
                         </div>
-                        
-                        <!-- FEATURE CARD: Upload Class Notes -->
-                        <div class="glass-card rounded-2xl shadow-xl p-6">
-                             <div class="flex items-center space-x-3 mb-4">
-                                 <div class="bg-white/30 p-2.5 rounded-lg">
-                                     <svg class="w-6 h-6 text-[#f06292]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                                 </div>
-                                 <div>
-                                     <h2 class="text-lg font-semibold text-gray-900">Upload Class Notes</h2>
-                                     <p class="text-sm text-gray-700">Share materials for lectures</p>
-                                 </div>
-                             </div>
-                             <div class="space-y-4">
-                                 <!-- This dropdown is populated with class names from the JavaScript data. -->
-                                 <select id="class-select-notes" class="w-full bg-white/30 text-gray-800 rounded-lg p-3 border-0 focus:ring-2 focus:ring-[#f06292] focus:outline-none">
-                                     <option>Select a class...</option>
-                                 </select>
-                                 <!-- A styled label that triggers the hidden file input. -->
-                                 <label for="notes-upload" class="cursor-pointer w-full text-center block bg-black text-white py-2 px-5 rounded-full font-bold text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-transform duration-200">
-                                     Choose File to Upload
-                                 </label>
-                                 <input type="file" id="notes-upload" class="hidden">
-                                 <!-- This paragraph will show the name of the file selected by the user. -->
-                                 <p id="file-upload-status" class="text-xs text-center text-gray-600 h-4"></p>
-                             </div>
-                        </div>
                     </div>
 
                     <!-- =================================================================
                          RIGHT COLUMN
                          This column holds the primary action cards for the teacher.
-                    ================================================================== -->
+                     ================================================================== -->
                     <div class="lg:col-span-2 space-y-6">
                         
                         <!-- FEATURE CARD: Today's Classes & QR Generation -->
                         <div class="glass-card rounded-2xl shadow-xl p-6">
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center space-x-3">
-                                     <div class="bg-white/30 p-2.5 rounded-lg">
-                                         <svg class="w-6 h-6 text-[#f06292]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                     </div>
-                                     <div>
-                                         <h2 class="text-lg font-bold text-gray-900">Today's Classes</h2>
-                                         <p id="current-date-display" class="text-sm text-gray-700">Loading today's date...</p>
-                                     </div>
+                                    <div class="bg-white/30 p-2.5 rounded-lg">
+                                        <svg class="w-6 h-6 text-[#f06292]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-lg font-bold text-gray-900">Today's Classes</h2>
+                                        <p id="current-date-display" class="text-sm text-gray-700">Loading today's date...</p>
+                                    </div>
                                 </div>
                                 <button id="add-class-btn" class="bg-black text-white px-4 py-2 rounded-full font-bold text-xs shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-transform duration-200 flex items-center space-x-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
@@ -196,6 +170,56 @@
                             
                             <!-- The list of classes is dynamically populated here by JavaScript. -->
                             <div id="classList" class="space-y-4 pt-4"></div>
+                        </div>
+
+                        <!-- Container for parallel upload/shared cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- FEATURE CARD: Upload Class Notes -->
+                            <div class="glass-card rounded-2xl shadow-xl p-6">
+                                 <div class="flex items-center space-x-3 mb-4">
+                                     <div class="bg-white/30 p-2.5 rounded-lg">
+                                         <svg class="w-6 h-6 text-[#f06292]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                     </div>
+                                     <div>
+                                         <h2 class="text-lg font-semibold text-gray-900">Upload Class Notes</h2>
+                                         <p class="text-sm text-gray-700">Share materials for lectures</p>
+                                     </div>
+                                 </div>
+                                 <div class="space-y-4">
+                                     <!-- This dropdown is populated with class names from the JavaScript data. -->
+                                     <select id="class-select-notes" class="w-full bg-white/30 text-gray-800 rounded-lg p-3 border-0 focus:ring-2 focus:ring-[#f06292] focus:outline-none">
+                                         <option value="">Select a class...</option>
+                                     </select>
+                                     <!-- A styled label that triggers the hidden file input. -->
+                                     <label for="notes-upload" class="cursor-pointer w-full text-center block bg-black text-white py-2 px-5 rounded-full font-bold text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-transform duration-200">
+                                         Choose File to Upload
+                                     </label>
+                                     <input type="file" id="notes-upload" class="hidden">
+                                     <!-- This paragraph will show the name of the file selected by the user. -->
+                                     <p id="file-upload-status" class="text-xs text-center text-gray-600 h-4"></p>
+                                 </div>
+                            </div>
+                            
+                            <!-- NEW FEATURE CARD: Shared Notes -->
+                            <div class="glass-card rounded-2xl shadow-xl p-6">
+                                <div class="flex items-center space-x-3 mb-4">
+                                    <div class="bg-white/30 p-2.5 rounded-lg">
+                                        <svg class="w-6 h-6 text-[#f06292]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 12h6m-1-5H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2h-5.586a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 009.586 3H7a2 2 0 00-2 2v1m14 14V7m-4-3v2m-6 0v2"></path></svg>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-lg font-semibold text-gray-900">Shared Class Notes</h2>
+                                        <p class="text-sm text-gray-700">View materials for students</p>
+                                    </div>
+                                </div>
+                                <div class="space-y-4">
+                                    <select id="class-select-shared" class="w-full bg-white/30 text-gray-800 rounded-lg p-3 border-0 focus:ring-2 focus:ring-[#f06292] focus:outline-none">
+                                        <option value="">Select a class to view notes...</option>
+                                    </select>
+                                    <div id="shared-notes-display" class="mt-1 p-2 bg-white/10 rounded-lg min-h-[100px]">
+                                        <p class="text-center text-gray-600 p-4">Select a class to see shared notes.</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- FEATURE CARD: Leave Requests -->
@@ -271,8 +295,14 @@
                     </select>
                 </div>
                  <div>
-                    <label for="new-class-time" class="text-sm font-semibold text-gray-700">Time (e.g., 03:00 PM - 04:00 PM)</label>
-                    <input type="text" id="new-class-time" class="mt-1 w-full bg-gray-100 text-gray-800 rounded-lg p-3 border-2 border-gray-200 focus:ring-2 focus:ring-[#f06292] focus:outline-none" required>
+                    <label for="new-class-time" class="text-sm font-semibold text-gray-700">Time Slot</label>
+                    <select id="new-class-time" class="mt-1 w-full bg-gray-100 text-gray-800 rounded-lg p-3 border-2 border-gray-200 focus:ring-2 focus:ring-[#f06292] focus:outline-none" required>
+                        <option value="">Select a time slot...</option>
+                        <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM</option>
+                        <option value="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</option>
+                        <option value="01:00 PM - 02:00 PM">01:00 PM - 02:00 PM</option>
+                        <option value="03:00 PM - 04:00 PM">03:00 PM - 04:00 PM</option>
+                    </select>
                 </div>
                 <div>
                     <label for="new-class-room" class="text-sm font-semibold text-gray-700">Room</label>
@@ -322,6 +352,8 @@
                  'dbms': { subject: 'Database Management'},
                  'cn': { subject: 'Computer Networks'}
             };
+            
+            const classNotes = {}; // To store uploaded notes, e.g., { 'ds': ['notes1.pdf', 'notes2.docx'] }
 
             const upcomingEvents = [
                 { date: 'Sep 15', title: 'Mid-Term Exams Start', type: 'academic' },
@@ -381,6 +413,8 @@
             const classSelectNotes = document.getElementById('class-select-notes');
             const classSelectRecords = document.getElementById('class-select-records');
             const newClassSubjectSelect = document.getElementById('new-class-subject');
+            const classSelectShared = document.getElementById('class-select-shared');
+
             // Populate dropdowns with all unique classes
             Object.keys(allClassInfo).forEach(classId => {
                 const info = allClassInfo[classId];
@@ -392,7 +426,8 @@
                 const optionRecords = document.createElement('option');
                 optionRecords.value = classId;
                 optionRecords.textContent = info.subject;
-                classSelectRecords.appendChild(optionRecords);
+                classSelectRecords.appendChild(optionRecords.cloneNode(true));
+                classSelectShared.appendChild(optionRecords.cloneNode(true));
 
                 const optionNewClass = document.createElement('option');
                 optionNewClass.value = classId;
@@ -427,18 +462,18 @@
                         </div>
                         <div class="flex items-center space-x-2">
                            <button 
-                                data-class-id="${cls.id}" 
-                                data-class-subject="${cls.subject}" 
-                                data-class-date="${currentDateKey}"
-                                data-class-time="${cls.time}"
-                                class="generate-qr-btn px-5 py-2 bg-black text-white font-bold text-sm rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-transform duration-200 flex items-center justify-center space-x-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                <span>QR</span>
+                                 data-class-id="${cls.id}" 
+                                 data-class-subject="${cls.subject}" 
+                                 data-class-date="${currentDateKey}"
+                                 data-class-time="${cls.time}"
+                                 class="generate-qr-btn px-5 py-2 bg-black text-white font-bold text-sm rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-transform duration-200 flex items-center justify-center space-x-2">
+                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                 <span>QR</span>
                            </button>
                            <button
-                                data-class-id="${cls.id}"
-                                data-class-time="${cls.time}"
-                                class="remove-class-btn bg-red-500 text-white w-9 h-9 rounded-full hover:bg-red-600 transition-transform hover:scale-110 flex justify-center items-center">&#10005;</button>
+                                 data-class-id="${cls.id}"
+                                 data-class-time="${cls.time}"
+                                 class="remove-class-btn bg-red-500 text-white w-9 h-9 rounded-full hover:bg-red-600 transition-transform hover:scale-110 flex justify-center items-center">&#10005;</button>
                         </div>
                     `;
                     classListContainer.appendChild(classElement);
@@ -528,9 +563,35 @@
                 `;
             };
             
+            const renderSharedNotes = () => {
+                const classId = document.getElementById('class-select-shared').value;
+                const displayContainer = document.getElementById('shared-notes-display');
+                
+                if (!classId) {
+                    displayContainer.innerHTML = `<p class="text-center text-gray-600 p-4">Select a class to see shared notes.</p>`;
+                    return;
+                }
+
+                const notes = classNotes[classId];
+
+                if (!notes || notes.length === 0) {
+                    displayContainer.innerHTML = `<p class="text-center text-gray-600 p-4">No notes shared for this subject yet.</p>`;
+                    return;
+                }
+
+                const notesListHTML = notes.map(note => `
+                    <div class="p-2 bg-white/20 rounded-md text-sm flex items-center gap-2">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <span class="truncate">${note}</span>
+                    </div>`).join('');
+
+                displayContainer.innerHTML = `<div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">${notesListHTML}</div>`;
+            };
+
             // Initial Renders
             renderTodaysClasses();
             renderLeaveRequests();
+            renderSharedNotes();
 
 
             // =================================================================
@@ -590,9 +651,9 @@
                     generateAndShowQR(classId, classDate);
                     qrTimerText.textContent = `Code ${currentChange} of ${totalChanges}. Refreshes in 6s.`; // Updated text
                      if(qrCountDisplay) {
-                        qrCountDisplay.textContent = `Generated: ${currentChange} / ${totalChanges}`;
-                        qrCountDisplay.style.color = '';
-                     }
+                         qrCountDisplay.textContent = `Generated: ${currentChange} / ${totalChanges}`;
+                         qrCountDisplay.style.color = '';
+                      }
                     
                     if (displayTimerInterval) clearInterval(displayTimerInterval);
                     let secondsShown = 0;
@@ -658,8 +719,8 @@
                 const newClassTime = document.getElementById('new-class-time').value;
                 const newClassRoom = document.getElementById('new-class-room').value;
 
-                if (!newClassId) {
-                    showToast('Please select a subject.');
+                if (!newClassId || !newClassTime) {
+                    showToast('Please select a subject and time slot.');
                     return;
                 }
 
@@ -728,16 +789,34 @@
             const notesUploadInput = document.getElementById('notes-upload');
             const fileUploadStatus = document.getElementById('file-upload-status');
             notesUploadInput.addEventListener('change', (e) => {
+                const selectedClassId = classSelectNotes.value;
+                if (!selectedClassId) {
+                    showToast('Please select a class before uploading notes.');
+                    notesUploadInput.value = ''; // Reset file input
+                    return;
+                }
+
                 if (e.target.files.length > 0) {
                     const fileName = e.target.files[0].name;
-                    fileUploadStatus.textContent = `Selected: ${fileName}`;
-                    fileUploadStatus.style.color = '#f06292';
+
+                    if (!classNotes[selectedClassId]) {
+                        classNotes[selectedClassId] = [];
+                    }
+                    classNotes[selectedClassId].push(fileName);
+
+                    showToast(`Uploaded "${fileName}" successfully!`);
+                    fileUploadStatus.textContent = `Uploaded: ${fileName}`;
+                    setTimeout(() => { fileUploadStatus.textContent = '' }, 2500);
+                    
+                    renderSharedNotes();
+                    notesUploadInput.value = '';
                 }
             });
 
-            // Event listeners for the attendance records dropdowns
+            // Event listeners for the attendance and notes records dropdowns
             document.getElementById('class-select-records').addEventListener('change', renderAttendanceRecords);
             document.getElementById('date-select-records').addEventListener('change', renderAttendanceRecords);
+            document.getElementById('class-select-shared').addEventListener('change', renderSharedNotes);
 
         });
     </script>
