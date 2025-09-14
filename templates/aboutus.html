@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About FLUX 6</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --dark-blue: #02020a; /* Made the blue even darker */
+            --light-purple: #D8CCF2;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-blue); /* Very dark blue background */
+            color: var(--light-purple); /* Default text color */
+        }
+        /* Animated gradient background using the new palette */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 15% 50%, #505081, transparent 40%),
+                radial-gradient(circle at 85% 30%, #272757, transparent 40%),
+                radial-gradient(circle at 50% 90%, #8686AC, transparent 40%);
+            filter: blur(120px);
+            animation: subtleAurora 20s ease-in-out infinite alternate;
+        }
+        @keyframes subtleAurora {
+            from { transform: scale(1) rotate(0deg); opacity: 0.7; }
+            to { transform: scale(1.1) rotate(15deg); opacity: 0.9; }
+        }
+        /* Keyframes for spinning animations */
+        @keyframes spin-reverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+        @keyframes spin-normal {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-reverse-slow {
+            animation: spin-reverse 60s linear infinite;
+        }
+        .animate-spin-normal-slow {
+            animation: spin-normal 60s linear infinite;
+        }
+        /* Glass card effect adapted for a dark theme */
+        .glass-card {
+            background: rgba(39, 39, 87, 0.25); /* #272757 with alpha */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(134, 134, 172, 0.2); /* #8686AC with alpha */
+            transition: all 0.3s ease-in-out;
+        }
+        .team-card {
+            width: 220px; /* Made cards smaller */
+        }
+        /* Hover effect lifts the card and brightens it */
+        .card-container:hover .team-card {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            background: rgba(80, 80, 129, 0.35); /* #505081 with alpha */
+            transform: translateY(-8px);
+        }
+
+        /* Role badges styled with the accent color */
+        .role-badge {
+            display: inline-block;
+            background-color: rgba(134, 134, 172, 0.15); /* #8686AC with alpha */
+            color: var(--light-purple); /* Light purple text */
+            border-radius: 9999px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 0.25rem;
+            border: 1px solid rgba(134, 134, 172, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Header -->
+    <header class="glass-card sticky top-4 z-50 mx-auto max-w-7xl w-full rounded-2xl">
+        <div class="px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <h1 class="text-xl font-bold">UPASTHITH</h1>
+                <!-- Button styled with the new palette -->
+                <a href="/" class="bg-[#8686AC] text-[#02020a] px-4 py-2 rounded-full font-bold text-xs shadow-lg hover:shadow-xl hover:shadow-[#8686ac]/30 hover:-translate-y-0.5 transition-all duration-200 active:scale-95">
+                    DASHBOARD
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="w-full flex items-center justify-center min-h-screen py-24 px-4 overflow-hidden">
+        
+        <!-- Positioning Container -->
+        <div class="lg:relative lg:w-full lg:max-w-7xl lg:h-[900px] mx-auto">
+            
+            <!-- Central Team Name -->
+            <div class="text-center mb-12 lg:absolute lg:top-1/2 lg:left-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 w-full max-w-xl lg:z-10">
+                <h2 class="text-6xl md:text-8xl font-extrabold tracking-tight">FLUX 6</h2>
+                <p class="mt-4 text-lg max-w-3xl mx-auto opacity-80">
+                    A team of passionate developers and researchers dedicated to creating seamless and efficient solutions.
+                </p>
+            </div>
+
+            <!-- Desktop Layout (Hidden on Mobile) -->
+            <div class="hidden lg:block">
+                <!-- Wrapper for the spinning animation -->
+                <div class="absolute w-full h-full animate-spin-reverse-slow">
+                    <!-- Top Card: Vaibhav Singh (Leader) -->
+                    <div class="card-container absolute" style="top: calc(50% - 380px); left: 50%; transform: translate(-50%, -50%);">
+                        <div class="animate-spin-normal-slow">
+                            <div class="team-card glass-card rounded-2xl p-6 text-center flex flex-col items-center justify-center h-60">
+                                <img class="h-16 w-16 rounded-full border-4 border-[#D8CCF2]/20 shadow-lg" src="vbx.jpg" alt="Vaibhav Singh">
+                                <h3 class="mt-4 text-base font-bold">Vaibhav Singh</h3>
+                                <div class="mt-2 flex flex-wrap justify-center">
+                                    <span class="role-badge">Leader</span>
+                                    <span class="role-badge">Back-end</span>
+                                    <span class="role-badge">Analyst</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Right Card: Jaideep Kamthan -->
+                    <div class="card-container absolute" style="top: calc(50% - 190px); left: calc(50% + 329px); transform: translate(-50%, -50%);">
+                         <div class="animate-spin-normal-slow">
+                            <div class="team-card glass-card rounded-2xl p-6 text-center flex flex-col items-center justify-center h-60">
+                                <img class="h-16 w-16 rounded-full border-4 border-[#D8CCF2]/20 shadow-lg" src="jaideep.jpg" alt="Jaideep Kamthan">
+                                <h3 class="mt-4 text-base font-bold">Jaideep Kamthan</h3>
+                                <div class="mt-2 flex flex-wrap justify-center">
+                                    <span class="role-badge">Front-end(UI/UX)</span>
+                                    <span class="role-badge">Research</span>
+                                    <span class="role-badge">Conceptualizer</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Right Card: Ayushi Kushwaha -->
+                    <div class="card-container absolute" style="top: calc(50% + 190px); left: calc(50% + 329px); transform: translate(-50%, -50%);">
+                        <div class="animate-spin-normal-slow">
+                            <div class="team-card glass-card rounded-2xl p-6 text-center flex flex-col items-center justify-center h-60">
+                                <img class="h-16 w-16 rounded-full border-4 border-[#D8CCF2]/20 shadow-lg" src="ayushi.jpg" alt="Ayushi Kushwaha">
+                                <h3 class="mt-4 text-base font-bold">Ayushi Kushwaha</h3>
+                                <div class="mt-2">
+                                    <span class="role-badge">Research</span>
+                                    <span class="role-badge">Abstract</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Center Card: Mayank Kumar -->
+                     <div class="card-container absolute" style="top: calc(50% + 380px); left: 50%; transform: translate(-50%, -50%);">
+                        <div class="animate-spin-normal-slow">
+                            <div class="team-card glass-card rounded-2xl p-6 text-center flex flex-col items-center justify-center h-60">
+                                <img class="h-16 w-16 rounded-full border-4 border-[#D8CCF2]/20 shadow-lg" src="manku.jpg" alt="Mayank Kumar">
+                                <h3 class="mt-4 text-base font-bold">Mayank Kumar</h3>
+                                <div class="mt-2 flex flex-wrap justify-center">
+                                   <span class="role-badge">Database</span>
+                                   <span class="role-badge">Backend</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Left Card: Kunal Singh Tomar -->
+                    <div class="card-container absolute" style="top: calc(50% + 190px); left: calc(50% - 329px); transform: translate(-50%, -50%);">
+                        <div class="animate-spin-normal-slow">
+                            <div class="team-card glass-card rounded-2xl p-6 text-center flex flex-col items-center justify-center h-60">
+                                <img class="h-16 w-16 rounded-full border-4 border-[#D8CCF2]/20 shadow-lg" src="ktau.jpg" alt="Kunal Singh Tomar">
+                                <h3 class="mt-4 text-base font-bold">Kunal Singh Tomar</h3>
+                                <div class="mt-2">
+                                    <span class="role-badge">Front-end</span>
+                                    <span class="role-badge">UI/UX</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Left Card: Hitarth Pratap Singh -->
+                    <div class="card-container absolute" style="top: calc(50% - 190px); left: calc(50% - 329px); transform: translate(-50%, -50%);">
+                        <div class="animate-spin-normal-slow">
+                            <div class="team-card glass-card rounded-2xl p-6 text-center flex flex-col items-center justify-center h-60">
+                                <img class="h-16 w-16 rounded-full border-4 border-[#D8CCF2]/20 shadow-lg" src="hitarth.jpg" alt="Hitarth Pratap Singh">
+                                <h3 class="mt-4 text-base font-bold">Hitarth Pratap Singh</h3>
+                                <div class="mt-2">
+                                    <span class="role-badge">Back-end</span>
+                                    <span class="role-badge">Database</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Layout (Grid) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 place-items-center lg:hidden">
+                <!-- Vaibhav -->
+                <div class="team-card glass-card rounded-2xl p-6 text-center flex flex-col items-center transition-transform duration-300 ease-in-out hover:-translate-y-2">
+                   <img class="h-16 w-16 rounded-full border-4 border-[#D8CCF2]/20 shadow-lg" src="vbx.jpg" alt="Vaibhav Singh">
+                   <h3 class="mt-4 text-base font-bold">Vaibhav Singh</h3>
+                   <div class="mt-2 flex flex-wrap justify-center">
+                       <span class="role-badge">Leader</span>
+                       <span class="role-badge">Back-end</span>
+                       <span class="role-badge">Analyst</span>
+                   </div>
+                </div>
+                <!-- Hitarth -->
+                <div class="team-card glass-card rounded-2xl p-6 text-center flex flex-col items-center transition-transform duration-300 ease-in-out hover:-translate-y-2">
+                    <img class="h-16 w-16 rounded-full border-4 border-[#D8CCF2]/20 shadow-lg" src="hitarth.jpg" alt="Hitarth Pratap Singh">
+                    <h3 class="mt-4 text-base font-bold">Hitarth Pratap Singh</h3>
+                    <div class="mt-2">
+                        <span class="role-badge">Back-end</span>
+                        <span class="role-badge">Database</span>
+                    </div>
+                </div>
+                <!-- Kunal -->
+                <div class="team-card glass-card rounded-2xl p-6 text-center flex flex-col items-center transition-transform duration-300 ease-in-out hover:-translate-y-2">
+                    <img class="h-16 w-16 rounded-full border-4 border-[#D8CCF2]/20 shadow-lg" src="ktau.jpg" alt="Kunal Singh Tomar">
+                    <h3 class="mt-4 text-base font-bold">Kunal Singh Tomar</h3>
+                    <div class="mt-2">
+                        <span class="role-badge">Front-end</span>
+                        <span class="role-badge">UI/UX</span>
+                    </div>
+                </div>
+                 <!-- Jaideep -->
+                 <div class="team-card glass-card rounded-2xl p-6 text-center flex flex-col items-center transition-transform duration-300 ease-in-out hover:-translate-y-2">
+                    <img class="h-16 w-16 rounded-full border-4 border-[#D8CCF2]/20 shadow-lg" src="jaideep.jpg" alt="Jaideep Kamthan">
+                    <h3 class="mt-4 text-base font-bold">Jaideep Kamthan</h3>
+                    <div class="mt-2 flex flex-wrap justify-center">
+                        <span class="role-badge">Front-end(UI/UX)</span>
+                        <span class="role-badge">Research</span>
+                        <span class="role-badge">Conceptualizer</span>
+                    </div>
+                </div>
+                <!-- Ayushi -->
+                <div class="team-card glass-card rounded-2xl p-6 text-center flex flex-col items-center transition-transform duration-300 ease-in-out hover:-translate-y-2">
+                    <img class="h-16 w-16 rounded-full border-4 border-[#D8CCF2]/20 shadow-lg" src="ayushi.jpg" alt="Ayushi Kushwaha">
+                    <h3 class="mt-4 text-base font-bold">Ayushi Kushwaha</h3>
+                     <div class="mt-2">
+                        <span class="role-badge">Research</span>
+                         <span class="role-badge">Abstract</span>
+                    </div>
+                </div>
+                <!-- Mayank -->
+                <div class="team-card glass-card rounded-2xl p-6 text-center flex flex-col items-center transition-transform duration-300 ease-in-out hover:-translate-y-2">
+                    <img class="h-16 w-16 rounded-full border-4 border-[#D8CCF2]/20 shadow-lg" src="manku.jpg" alt="Mayank Kumar">
+                    <h3 class="mt-4 text-base font-bold">Mayank Kumar</h3>
+                     <div class="mt-2 flex flex-wrap justify-center">
+                        <span class="role-badge">Database</span>
+                        <span class="role-badge">Back-end</span>
+                     </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-8">
+        <p class="text-sm opacity-60">&copy; 2025 FLUX 6. All Rights Reserved.</p>
+    </footer>
+
+</body>
+</html>

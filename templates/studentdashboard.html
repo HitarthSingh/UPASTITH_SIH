@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polished Student Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        :root {
+            --dark-blue: #02020a;
+            --light-purple: #D8CCF2;
+            --accent-purple-1: #8686AC;
+            --accent-purple-2: #505081;
+            --accent-purple-3: #272757;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-blue);
+            color: var(--light-purple);
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 15% 50%, var(--accent-purple-2), transparent 40%), radial-gradient(circle at 85% 30%, var(--accent-purple-3), transparent 40%), radial-gradient(circle at 50% 90%, var(--accent-purple-1), transparent 40%);
+            filter: blur(120px);
+            animation: subtleAurora 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes subtleAurora {
+            from {
+                transform: scale(1) rotate(0deg);
+                opacity: 0.7;
+            }
+            to {
+                transform: scale(1.1) rotate(15deg);
+                opacity: 0.9;
+            }
+        }
+
+        .glass-card {
+            background: rgba(39, 39, 87, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(134, 134, 172, 0.2);
+        }
+
+        .qr-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        #qr-canvas {
+            display: none;
+        }
+
+        .status-success {
+            color: #22c55e;
+        }
+
+        .status-error {
+            color: #ef4444;
+        }
+
+        .status-scanning {
+            color: #60a5fa;
+        }
+
+        /* Sidebar Styles */
+        #sidebar {
+            transition: width 0.3s ease-in-out;
+        }
+
+        #main-content {
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        #sidebar.collapsed {
+            width: 88px;
+            /* w-22 */
+        }
+
+        #sidebar.collapsed .nav-text,
+        #sidebar.collapsed #sidebar-header h1 {
+            opacity: 0;
+            visibility: hidden;
+            width: 0;
+            transition: opacity 0.1s, width 0.3s;
+        }
+
+        #sidebar.collapsed .nav-link svg {
+            margin-right: 0;
+        }
+
+        #main-content.sidebar-collapsed {
+            margin-left: 88px;
+        }
+
+        .nav-text,
+        #sidebar-header h1 {
+            transition: opacity 0.2s ease-in-out 0.1s, width 0.3s;
+        }
+
+        /* Mobile slide-in */
+        @media (max-width: 1023px) {
+            #sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                z-index: 60;
+                width: 256px !important;
+                /* w-64 */
+            }
+            #sidebar.open {
+                transform: translateX(0);
+            }
+            #main-content {
+                margin-left: 0 !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-[var(--dark-blue)]">
+    <div class="relative flex min-h-screen">
+        <!-- Collapsible Sidebar -->
+        <aside id="sidebar" class="glass-card fixed top-0 left-0 z-50 flex h-full w-64 flex-col p-6">
+            <!-- Desktop Collapse Button -->
+            <button id="desktop-sidebar-toggle" class="absolute top-1/2 -right-4 z-10 hidden h-8 w-8 transform -translate-y-1/2 items-center justify-center rounded-full bg-[var(--accent-purple-2)] text-white transition-all hover:bg-[var(--accent-purple-1)] lg:flex">
+                <svg id="desktop-toggle-icon" class="h-4 w-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+            <div id="sidebar-header" class="mb-10 mt-4 overflow-hidden">
+                <h1 class="whitespace-nowrap text-center text-2xl font-bold text-white">Student Portal</h1>
+            </div>
+            <nav class="w-full flex-grow">
+                <ul class="space-y-2">
+                    <li><a href="studentdashboard.html" class="nav-link flex items-center rounded-lg bg-white/20 p-3 font-semibold text-white shadow-md"><svg class="h-5 w-5 mr-3 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h4"></path></svg><span class="nav-text whitespace-nowrap">Home</span></a></li>
+                    <li><a href="timetable.html" class="nav-link flex items-center rounded-lg p-3 text-white/70 transition-colors hover:bg-white/10"><svg class="h-5 w-5 mr-3 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><span class="nav-text whitespace-nowrap">Timetable</span></a></li>
+                    <li><a href="repository.html" class="nav-link flex items-center rounded-lg p-3 text-white/70 transition-colors hover:bg-white/10"><svg class="h-5 w-5 mr-3 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v2a2 2 0 01-2 2m2-4v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4a2 2 0 012-2m2 4h10m-10 0v-2a2 2 0 012-2h6a2 2 0 012 2v2m-6-4h4"></path></svg><span class="nav-text whitespace-nowrap">Repository</span></a></li>
+                    <li><a href="leaveapplication.html" class="nav-link flex items-center rounded-lg p-3 text-white/70 transition-colors hover:bg-white/10"><svg class="h-5 w-5 mr-3 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="nav-text whitespace-nowrap">Leave Application</span></a></li>
+                    <li><a href="studentresult.html" class="nav-link flex items-center rounded-lg p-3 text-white/70 transition-colors hover:bg-white/10"><svg class="h-5 w-5 mr-3 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg><span class="nav-text whitespace-nowrap">Student Result</span></a></li>
+                    <li><a href="suggestionbox.html" class="nav-link flex items-center rounded-lg p-3 text-white/70 transition-colors hover:bg-white/10"><svg class="h-5 w-5 mr-3 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20.25h4.5m-15-2.25h15M12 16.5h4.5M3 13.5h18M12 9.75h4.5M3 6.75h18"></path></svg><span class="nav-text whitespace-nowrap">Suggestion Box</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Mobile Sidebar Backdrop -->
+        <div id="sidebar-backdrop" class="fixed inset-0 z-40 hidden bg-black/50 lg:hidden"></div>
+
+        <!-- Mobile Sidebar Toggle Button -->
+        <button id="sidebar-toggle" class="glass-card fixed top-4 left-4 z-[61] rounded-md p-2 text-white lg:hidden">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+        </button>
+
+
+        <!-- Main Content Area -->
+        <div id="main-content" class="flex-grow lg:ml-64">
+            <main class="flex-grow p-4 pt-20 lg:p-8 lg:pt-8">
+                <div class="mx-auto w-full max-w-7xl">
+                    <!-- Header Section -->
+                    <div class="glass-card mb-8 flex flex-col justify-between rounded-3xl p-6 shadow-xl md:flex-row md:p-8">
+                        <div>
+                            <h1 id="welcome-heading" class="text-3xl font-bold text-white lg:text-5xl">Loading...</h1>
+                            <p class="mt-2 text-xl font-medium text-white/70 lg:text-2xl">Welcome back!</p>
+                        </div>
+                        <div class="mt-4 flex items-center space-x-4 md:mt-0">
+                            <div class="text-right">
+                                <h3 id="student-name" class="text-lg font-medium text-white"></h3>
+                                <p id="student-id" class="text-sm text-white/70"></p>
+                            </div>
+                            <div class="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-purple-1)] shadow-inner">
+                                <span id="student-initial" class="text-2xl font-bold text-[var(--dark-blue)]"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Dashboard Content Grid -->
+                    <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                        <!-- Left Column -->
+                        <div class="space-y-8 lg:col-span-2 order-2 lg:order-1">
+                            <div class="glass-card rounded-3xl p-6 shadow-xl md:p-8">
+                                <h2 class="mb-6 text-2xl font-semibold text-white">Today's Classes</h2>
+                                <div id="timetable-container" class="flex flex-col gap-4"></div>
+                            </div>
+                            <div class="glass-card rounded-3xl p-6 shadow-xl md:p-8">
+                                <h2 class="mb-6 text-2xl font-semibold text-white">Upcoming Events</h2>
+                                <div id="events-container" class="grid grid-cols-1 gap-4 md:grid-cols-2"></div>
+                            </div>
+                        </div>
+                        <!-- Right Column -->
+                        <div class="lg:col-span-1 order-1 lg:order-2">
+                            <div class="glass-card flex h-full flex-col items-center rounded-3xl p-8 shadow-xl">
+                                <h2 class="mb-6 text-2xl font-semibold text-white">Attendance Summary</h2>
+                                <div class="h-56 w-56 flex-shrink-0 md:h-64 md:w-64"><canvas id="attendanceChart"></canvas></div>
+                                <div class="mt-8 w-full space-y-3 text-base font-medium text-white/80">
+                                    <div class="flex items-center"><span class="mr-3 inline-block h-4 w-4 rounded-full" style="background-color: #6D9F91;"></span><span>Above 85% (Safe)</span></div>
+                                    <div class="flex items-center"><span class="mr-3 inline-block h-4 w-4 rounded-full" style="background-color: #E0C080;"></span><span>75-85% (Warning)</span></div>
+                                    <div class="flex items-center"><span class="mr-3 inline-block h-4 w-4 rounded-full" style="background-color: #E5989B;"></span><span>Below 75% (Danger)</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- QR Code Scanner Modal -->
+        <div id="face-recognition-modal" class="qr-modal-overlay hidden">
+        <div class="glass-card rounded-3xl p-6 md:p-8 shadow-2xl relative w-full max-w-lg mx-4 text-white">
+            <button onclick="closeFaceRecognition()" class="absolute top-4 right-4 p-2 rounded-full text-white/50 hover:bg-white/20 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h2 id="face-modal-title" class="text-2xl font-semibold mb-4 text-center">Face Recognition Attendance</h2>
+            <div class="mb-4 text-center">
+                <p class="text-sm text-white/70 mb-2">Position your face in the camera frame and click capture to mark attendance</p>
+            </div>
+            <video id="face-video-stream" class="w-full rounded-lg" autoplay playsinline></video>
+            <canvas id="face-canvas" style="display: none;"></canvas>
+            <div id="face-capture-controls" class="mt-4 flex justify-center space-x-4">
+                <button id="capture-attendance-btn" onclick="captureForAttendance()" class="px-6 py-3 bg-[var(--accent-purple-1)] text-[var(--dark-blue)] rounded-lg font-medium hover:bg-[var(--light-purple)] transition-colors">
+                    📷 Capture & Mark Attendance
+                </button>
+            </div>
+            <p id="face-camera-status" class="mt-4 text-center text-white/70"></p>
+            <div id="face-result" class="mt-4 p-3 rounded-lg hidden">
+                <p id="face-result-text" class="text-center font-medium"></p>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- 0. NAVIGATION TOGGLE ---
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const mobileSidebarToggle = document.getElementById('sidebar-toggle');
+            const desktopSidebarToggle = document.getElementById('desktop-sidebar-toggle');
+            const desktopToggleIcon = document.getElementById('desktop-toggle-icon');
+            const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+
+            // Toggle for mobile
+            mobileSidebarToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('open');
+                sidebarBackdrop.classList.toggle('hidden');
+            });
+
+            const closeMobileSidebar = () => {
+                sidebar.classList.remove('open');
+                sidebarBackdrop.classList.add('hidden');
+            }
+
+            // Toggle for desktop collapse
+            if (desktopSidebarToggle) {
+                desktopSidebarToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('sidebar-collapsed');
+                    desktopToggleIcon.classList.toggle('rotate-180');
+                });
+            }
+
+            // Close sidebar when clicking on the backdrop
+            sidebarBackdrop.addEventListener('click', closeMobileSidebar);
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth < 1024 && sidebar.classList.contains('open')) {
+                    if (!sidebar.contains(e.target) && !mobileSidebarToggle.contains(e.target)) {
+                        closeMobileSidebar();
+                    }
+                }
+            });
+
+            // --- 1. MOCK DATA & INITIAL SETUP ---
+            const studentData = {
+                name: "Alex Williams",
+                id: "67890",
+                initial: "A",
+                attendance: [{
+                    subject: 'Data Structures',
+                    totalClasses: 20,
+                    attendedClasses: 20
+                }, {
+                    subject: 'Operating Systems',
+                    totalClasses: 18,
+                    attendedClasses: 18
+                }, {
+                    subject: 'Computer Networks',
+                    totalClasses: 22,
+                    attendedClasses: 18
+                }, // Example of lower attendance
+                {
+                    subject: 'Calculus',
+                    totalClasses: 25,
+                    attendedClasses: 20
+                }, // Example of lower attendance
+                {
+                    subject: 'History',
+                    totalClasses: 15,
+                    attendedClasses: 15
+                }],
+                schedule: [{
+                    time: '09:00 AM',
+                    subject: 'Data Structures',
+                    color: 'blue'
+                }, {
+                    time: '10:15 AM',
+                    subject: 'Operating Systems',
+                    color: 'purple'
+                }, {
+                    time: '11:30 AM',
+                    subject: 'Computer Networks',
+                    color: 'pink'
+                }],
+                events: [{
+                    title: 'Mid-Term Exams Start',
+                    date: 'Sep 15, 2025'
+                }, {
+                    title: 'Project Submissions Due',
+                    date: 'Sep 20, 2025'
+                }, {
+                    title: 'Tech Fest "Innovate"',
+                    date: 'Sep 22, 2025'
+                }]
+            };
+
+            // --- 2. DYNAMIC CONTENT RENDERING ---
+            function populateStudentInfo() {
+                document.getElementById('welcome-heading').textContent = `Hello, ${studentData.name.split(' ')[0]}!`;
+                document.getElementById('student-name').textContent = studentData.name;
+                document.getElementById('student-id').textContent = `ID: ${studentData.id}`;
+                document.getElementById('student-initial').textContent = studentData.initial;
+            }
+
+            function renderTimetable() {
+                const container = document.getElementById('timetable-container');
+                container.innerHTML = '';
+                if (!studentData.schedule || studentData.schedule.length === 0) {
+                    container.innerHTML = `<p class="text-center text-white/70">No classes scheduled for today.</p>`;
+                    return;
+                }
+                const colorClasses = {
+                    blue: 'bg-blue-900/50 text-blue-200',
+                    purple: 'bg-purple-900/50 text-purple-200',
+                    pink: 'bg-pink-900/50 text-pink-200',
+                };
+                studentData.schedule.forEach(cls => {
+                    const classEl = document.createElement('div');
+                    // This new layout is more robust for mobile screens
+                    classEl.className = 'flex justify-between items-center p-4 bg-black/20 rounded-lg shadow-sm';
+                    classEl.innerHTML = `
+                        <div class="flex items-center min-w-0">
+                            <p class="font-medium text-white/90 text-sm sm:text-base w-24 flex-shrink-0">${cls.time}</p>
+                            <span class="${colorClasses[cls.color] || 'bg-gray-700'} px-3 py-1.5 rounded-full font-semibold text-xs sm:text-sm truncate">${cls.subject}</span>
+                        </div>
+                        <button onclick="openFaceRecognition('${cls.subject}')" class="flex-shrink-0 px-3 py-2 bg-[var(--accent-purple-1)] text-[var(--dark-blue)] rounded-full shadow-md hover:bg-[var(--light-purple)] transition-colors ml-3 text-sm font-semibold">
+                            Mark Attendance
+                        </button>
+                    `;
+                    container.appendChild(classEl);
+                });
+            }
+
+            function renderEvents() {
+                const container = document.getElementById('events-container');
+                container.innerHTML = '';
+                if (!studentData.events || studentData.events.length === 0) {
+                    container.innerHTML = `<p class="text-center text-white/70">No upcoming events.</p>`;
+                    return;
+                }
+                studentData.events.forEach(event => {
+                    const eventEl = document.createElement('div');
+                    eventEl.className = 'bg-black/20 rounded-lg p-4 shadow-sm flex items-center';
+                    eventEl.innerHTML = `
+                        <svg class="w-6 h-6 text-white/70 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h.01M17 11h.01M16 21H8a2 2 0 01-2-2V7a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path></svg>
+                        <div>
+                            <p class="font-medium text-lg text-white">${event.title}</p>
+                            <p class="text-sm text-white/70">${event.date}</p>
+                        </div>
+                    `;
+                    container.appendChild(eventEl);
+                });
+            }
+
+            // --- 3. DYNAMIC ATTENDANCE CALCULATION & CHART LOGIC ---
+            function calculateOverallAttendance(attendanceData) {
+                const categories = {
+                    safe: 0,
+                    warning: 0,
+                    danger: 0
+                };
+                if (!attendanceData || attendanceData.length === 0) return {
+                    safe: 100,
+                    warning: 0,
+                    danger: 0
+                };
+                attendanceData.forEach(subject => {
+                    const percentage = (subject.attendedClasses / subject.totalClasses) * 100;
+                    if (percentage < 75) categories.danger++;
+                    else if (percentage < 85) categories.warning++;
+                    else categories.safe++;
+                });
+                const totalSubjects = attendanceData.length;
+                return {
+                    safe: (categories.safe / totalSubjects) * 100,
+                    warning: (categories.warning / totalSubjects) * 100,
+                    danger: (categories.danger / totalSubjects) * 100,
+                };
+            }
+
+            const attendancePercentages = calculateOverallAttendance(studentData.attendance);
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
+            const attendanceChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Above 85%', '75% - 85%', 'Below 75%'],
+                    datasets: [{
+                        data: [attendancePercentages.safe, attendancePercentages.warning, attendancePercentages.danger],
+                        backgroundColor: ['#6D9F91', '#E0C080', '#E5989B'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (item) => `${item.label}: ${item.raw.toFixed(1)}%`
+                            }
+                        }
+                    }
+                }
+            });
+
+            // --- 4. FACE RECOGNITION MODAL LOGIC ---
+            let currentStream = null;
+            let currentSubject = null;
+
+            window.openFaceRecognition = async (subjectName) => {
+                currentSubject = subjectName;
+                const modal = document.getElementById('face-recognition-modal');
+                const modalTitle = document.getElementById('face-modal-title');
+                const video = document.getElementById('face-video-stream');
+                const statusEl = document.getElementById('face-camera-status');
+                
+                modalTitle.textContent = `Mark Attendance - ${subjectName}`;
+                statusEl.textContent = 'Starting camera...';
+                modal.classList.remove('hidden');
+                
+                try {
+                    currentStream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { 
+                            facingMode: 'user',
+                            width: { ideal: 640 },
+                            height: { ideal: 480 }
+                        } 
+                    });
+                    video.srcObject = currentStream;
+                    
+                    // Apply lateral inversion for natural mirror effect
+                    video.style.transform = 'scaleX(-1)';
+                    
+                    statusEl.textContent = 'Camera ready! Position your face and click capture.';
+                } catch (error) {
+                    console.error('Error accessing camera:', error);
+                    statusEl.textContent = 'Error: Could not access camera. Please check permissions.';
+                }
+            };
+
+            window.closeFaceRecognition = () => {
+                const modal = document.getElementById('face-recognition-modal');
+                const resultEl = document.getElementById('face-result');
+                
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                    currentStream = null;
+                }
+                
+                modal.classList.add('hidden');
+                resultEl.classList.add('hidden');
+                currentSubject = null;
+            };
+
+            window.captureForAttendance = async () => {
+                const video = document.getElementById('face-video-stream');
+                const canvas = document.getElementById('face-canvas');
+                const ctx = canvas.getContext('2d');
+                const resultEl = document.getElementById('face-result');
+                const resultText = document.getElementById('face-result-text');
+                const statusEl = document.getElementById('face-camera-status');
+                
+                if (!currentSubject) {
+                    alert('No subject selected');
+                    return;
+                }
+                
+                // Set canvas dimensions
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                // Draw the video frame to canvas (flip back to normal orientation)
+                ctx.scale(-1, 1);
+                ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+                ctx.scale(-1, 1);
+                
+                // Convert to blob and send to server
+                canvas.toBlob(async (blob) => {
+                    const formData = new FormData();
+                    formData.append('image', blob, 'face_capture.jpg');
+                    formData.append('subject', currentSubject);
+                    
+                    statusEl.textContent = 'Processing face recognition...';
+                    resultEl.classList.add('hidden');
+                    
+                    try {
+                        const response = await fetch('/api/mark_attendance_face', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            resultText.textContent = `✅ ${result.message}`;
+                            resultEl.className = 'mt-4 p-3 rounded-lg bg-green-600/20 border border-green-500/30';
+                            statusEl.textContent = 'Attendance marked successfully!';
+                            
+                            // Auto-close after 3 seconds
+                            setTimeout(() => {
+                                closeFaceRecognition();
+                            }, 3000);
+                        } else {
+                            resultText.textContent = `❌ ${result.message}`;
+                            resultEl.className = 'mt-4 p-3 rounded-lg bg-red-600/20 border border-red-500/30';
+                            statusEl.textContent = 'Please try again.';
+                        }
+                        
+                        resultEl.classList.remove('hidden');
+                        
+                    } catch (error) {
+                        console.error('Error marking attendance:', error);
+                        resultText.textContent = '❌ Network error. Please try again.';
+                        resultEl.className = 'mt-4 p-3 rounded-lg bg-red-600/20 border border-red-500/30';
+                        resultEl.classList.remove('hidden');
+                        statusEl.textContent = 'Network error occurred.';
+                    }
+                }, 'image/jpeg', 0.8);
+            };
+
+            // --- 5. INITIALIZE DASHBOARD ---
+            populateStudentInfo();
+            renderTimetable();
+            renderEvents();
+        });
+    </script>
+</body>
+
+</html>
+

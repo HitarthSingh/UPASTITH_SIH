@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Repository</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Theme Colors */
+            --dark-blue: #02020a;
+            --light-purple: #D8CCF2;
+            --accent-purple-1: #8686AC;
+            --accent-purple-2: #505081;
+            --accent-purple-3: #272757;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-blue);
+            color: var(--light-purple);
+            overflow-x: hidden;
+        }
+
+        /* Animated gradient background */
+        body::before {
+            content: '';
+            position: fixed; 
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 15% 50%, var(--accent-purple-2), transparent 40%),
+                radial-gradient(circle at 85% 30%, var(--accent-purple-3), transparent 40%),
+                radial-gradient(circle at 50% 90%, var(--accent-purple-1), transparent 40%);
+            filter: blur(120px);
+            animation: subtleAurora 20s ease-in-out infinite alternate;
+        }
+        @keyframes subtleAurora {
+            from { transform: scale(1) rotate(0deg); opacity: 0.7; }
+            to { transform: scale(1.1) rotate(15deg); opacity: 0.9; }
+        }
+
+        /* Glass card effect helper */
+        .glass-card {
+            background: rgba(39, 39, 87, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(134, 134, 172, 0.2);
+        }
+
+        /* Custom button style helper */
+        .btn-custom {
+            background-color: var(--accent-purple-1);
+            color: var(--dark-blue);
+            box-shadow: 0 4px 15px -5px rgba(134, 134, 172, 0.4);
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-custom:hover {
+            box-shadow: 0 6px 20px -5px rgba(134, 134, 172, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* Sidebar Styles */
+        #sidebar {
+            transition: width 0.3s ease-in-out;
+        }
+        #main-content {
+            transition: margin-left 0.3s ease-in-out;
+        }
+        
+        #sidebar.collapsed {
+            width: 88px; /* w-22 */
+        }
+        #sidebar.collapsed .nav-text, #sidebar.collapsed #sidebar-header h1 {
+            opacity: 0;
+            visibility: hidden;
+            width: 0;
+            transition: opacity 0.1s, width 0.3s;
+        }
+        #sidebar.collapsed .nav-link svg {
+            margin-right: 0;
+        }
+        #main-content.sidebar-collapsed {
+            margin-left: 88px;
+        }
+        .nav-text, #sidebar-header h1 {
+            transition: opacity 0.2s ease-in-out 0.1s, width 0.3s;
+        }
+
+         /* Mobile slide-in */
+        @media (max-width: 1023px) {
+            #sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                z-index: 60;
+                width: 256px !important; /* w-64 */
+            }
+            #sidebar.open {
+                transform: translateX(0);
+            }
+             #main-content {
+                margin-left: 0 !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-[var(--dark-blue)]">
+    <div class="relative min-h-screen flex">
+        <!-- Collapsible Sidebar -->
+        <aside id="sidebar" class="glass-card fixed top-0 left-0 h-full w-64 p-6 flex flex-col z-50">
+            <!-- Desktop Collapse Button -->
+            <button id="desktop-sidebar-toggle" class="hidden lg:flex absolute top-1/2 -right-4 transform -translate-y-1/2 w-8 h-8 rounded-full bg-[var(--accent-purple-2)] items-center justify-center text-white hover:bg-[var(--accent-purple-1)] transition-all z-10">
+                <svg id="desktop-toggle-icon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <div id="sidebar-header" class="mb-10 mt-4 overflow-hidden">
+                <h1 class="text-2xl font-bold text-white text-center whitespace-nowrap">Student Portal</h1>
+            </div>
+            <nav class="w-full flex-grow">
+                <ul class="space-y-2">
+                    <li><a href="studentdashboard.html" class="nav-link flex items-center p-3 rounded-lg text-white/70 hover:bg-white/10 transition-colors"><svg class="w-5 h-5 mr-3 transition-all flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h4"></path></svg><span class="nav-text whitespace-nowrap">Home</span></a></li>
+                    <li><a href="timetable.html" class="nav-link flex items-center p-3 rounded-lg text-white/70 hover:bg-white/10 transition-colors"><svg class="w-5 h-5 mr-3 transition-all flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><span class="nav-text whitespace-nowrap">Timetable</span></a></li>
+                    <li><a href="repository.html" class="nav-link flex items-center p-3 rounded-lg text-white font-semibold bg-white/20 shadow-md"><svg class="w-5 h-5 mr-3 transition-all flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v2a2 2 0 01-2 2m2-4v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4a2 2 0 012-2m2 4h10m-10 0v-2a2 2 0 012-2h6a2 2 0 012 2v2m-6-4h4"></path></svg><span class="nav-text whitespace-nowrap">Repository</span></a></li>
+                    <li><a href="leaveapplication.html" class="nav-link flex items-center p-3 rounded-lg text-white/70 hover:bg-white/10 transition-colors"><svg class="w-5 h-5 mr-3 transition-all flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="nav-text whitespace-nowrap">Leave Application</span></a></li>
+                    <li><a href="studentresult.html" class="nav-link flex items-center p-3 rounded-lg text-white/70 hover:bg-white/10 transition-colors"><svg class="w-5 h-5 mr-3 transition-all flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg><span class="nav-text whitespace-nowrap">Student Result</span></a></li>
+                    <li><a href="suggestionbox.html" class="nav-link flex items-center p-3 rounded-lg text-white/70 hover:bg-white/10 transition-colors"><svg class="w-5 h-5 mr-3 transition-all flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20.25h4.5m-15-2.25h15M12 16.5h4.5M3 13.5h18M12 9.75h4.5M3 6.75h18"></path></svg><span class="nav-text whitespace-nowrap">Suggestion Box</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <!-- Mobile Sidebar Toggle Button -->
+        <button id="sidebar-toggle" class="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md glass-card text-white">
+             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+
+        <!-- Main Content Area -->
+        <div id="main-content" class="flex-grow lg:ml-64">
+             <main class="flex-grow p-4 lg:p-8">
+                <div class="w-full max-w-7xl mx-auto">
+                    <!-- Header Section -->
+                    <div class="glass-card rounded-3xl shadow-xl p-6 md:p-8 mb-8 flex flex-col md:flex-row justify-between items-start">
+                        <div>
+                            <h1 class="text-3xl lg:text-5xl font-bold text-white">Repository</h1>
+                            <p class="text-xl lg:text-2xl mt-2 font-medium text-white/70">Access your notes and files.</p>
+                        </div>
+                        <div class="flex items-center space-x-4 mt-4 md:mt-0">
+                             <div class="text-right">
+                                <h3 id="student-name" class="font-medium text-lg text-white"></h3>
+                                <p id="student-id" class="text-sm text-white/70"></p>
+                            </div>
+                            <div class="w-14 h-14 bg-[var(--accent-purple-1)] rounded-full flex items-center justify-center shadow-inner">
+                                <span id="student-initial" class="text-2xl font-bold text-[var(--dark-blue)]"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes Repository section -->
+                    <div class="glass-card rounded-3xl shadow-xl p-8">
+                        <h2 class="text-3xl font-bold mb-6 text-white">My Notes</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            
+                            <!-- Math Card -->
+                            <div class="glass-card rounded-xl p-6 flex flex-col justify-between transition-transform transform hover:scale-105 duration-300 shadow-md hover:bg-white/10">
+                                <div class="flex items-center mb-4 w-full">
+                                    <div class="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center mr-4 flex-shrink-0">
+                                        <i class="fas fa-calculator text-2xl text-[var(--light-purple)]"></i>
+                                    </div>
+                                    <div class="flex-grow">
+                                        <h3 class="font-semibold text-xl text-white">Math Notes</h3>
+                                        <p class="text-sm text-white/70">Updated: Oct 26, 2023</p>
+                                    </div>
+                                </div>
+                                <button class="btn-custom font-medium px-4 py-2 rounded-full self-end">
+                                    View Folder
+                                </button>
+                            </div>
+
+                            <!-- Physics Card -->
+                            <div class="glass-card rounded-xl p-6 flex flex-col justify-between transition-transform transform hover:scale-105 duration-300 shadow-md hover:bg-white/10">
+                                <div class="flex items-center mb-4 w-full">
+                                    <div class="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center mr-4 flex-shrink-0">
+                                        <i class="fas fa-atom text-2xl text-[var(--light-purple)]"></i>
+                                    </div>
+                                    <div class="flex-grow">
+                                        <h3 class="font-semibold text-xl text-white">Physics Lab Reports</h3>
+                                        <p class="text-sm text-white/70">Updated: Oct 25, 2023</p>
+                                    </div>
+                                </div>
+                                <button class="btn-custom font-medium px-4 py-2 rounded-full self-end">
+                                   View Folder
+                                </button>
+                            </div>
+                            
+                            <!-- History Card -->
+                            <div class="glass-card rounded-xl p-6 flex flex-col justify-between transition-transform transform hover:scale-105 duration-300 shadow-md hover:bg-white/10">
+                                <div class="flex items-center mb-4 w-full">
+                                    <div class="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center mr-4 flex-shrink-0">
+                                        <i class="fas fa-scroll text-2xl text-[var(--light-purple)]"></i>
+                                    </div>
+                                    <div class="flex-grow">
+                                        <h3 class="font-semibold text-xl text-white">History Essays</h3>
+                                        <p class="text-sm text-white/70">Updated: Oct 20, 2023</p>
+                                    </div>
+                                </div>
+                                <button class="btn-custom font-medium px-4 py-2 rounded-full self-end">
+                                    View Folder
+                                </button>
+                            </div>
+
+                            <!-- Chemistry Card -->
+                            <div class="glass-card rounded-xl p-6 flex flex-col justify-between transition-transform transform hover:scale-105 duration-300 shadow-md hover:bg-white/10">
+                                <div class="flex items-center mb-4 w-full">
+                                    <div class="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center mr-4 flex-shrink-0">
+                                        <i class="fas fa-flask-vial text-2xl text-[var(--light-purple)]"></i>
+                                    </div>
+                                    <div class="flex-grow">
+                                        <h3 class="font-semibold text-xl text-white">Chemistry Homework</h3>
+                                        <p class="text-sm text-white/70">Updated: Oct 18, 2023</p>
+                                    </div>
+                                </div>
+                                <button class="btn-custom font-medium px-4 py-2 rounded-full self-end">
+                                    View Folder
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- 0. NAVIGATION TOGGLE ---
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const mobileSidebarToggle = document.getElementById('sidebar-toggle');
+            const desktopSidebarToggle = document.getElementById('desktop-sidebar-toggle');
+            const desktopToggleIcon = document.getElementById('desktop-toggle-icon');
+            
+            mobileSidebarToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('open');
+            });
+            
+            if (desktopSidebarToggle) {
+                desktopSidebarToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('sidebar-collapsed');
+                    desktopToggleIcon.classList.toggle('rotate-180');
+                });
+            }
+
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth < 1023 && sidebar.classList.contains('open')) {
+                    if (!sidebar.contains(e.target) && e.target !== mobileSidebarToggle) {
+                        sidebar.classList.remove('open');
+                    }
+                }
+            });
+
+            // --- 1. MOCK DATA & INITIAL SETUP ---
+            const studentData = {
+                name: "Alex Williams",
+                id: "67890",
+                initial: "A"
+            };
+
+            function populateStudentInfo() {
+                document.getElementById('student-name').textContent = studentData.name;
+                document.getElementById('student-id').textContent = `ID: ${studentData.id}`;
+                document.getElementById('student-initial').textContent = studentData.initial;
+            }
+
+            // --- 2. INITIALIZE ---
+            populateStudentInfo();
+        });
+    </script>
+</body>
+</html>
+

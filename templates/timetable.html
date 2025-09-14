@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Timetable</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --dark-blue: #02020a;
+            --light-purple: #D8CCF2;
+            --accent-purple-1: #8686AC;
+            --accent-purple-2: #505081;
+            --accent-purple-3: #272757;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-blue);
+            color: var(--light-purple);
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; 
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 15% 50%, var(--accent-purple-2), transparent 40%),
+                radial-gradient(circle at 85% 30%, var(--accent-purple-3), transparent 40%),
+                radial-gradient(circle at 50% 90%, var(--accent-purple-1), transparent 40%);
+            filter: blur(120px);
+            animation: subtleAurora 20s ease-in-out infinite alternate;
+        }
+        @keyframes subtleAurora {
+            from { transform: scale(1) rotate(0deg); opacity: 0.7; }
+            to { transform: scale(1.1) rotate(15deg); opacity: 0.9; }
+        }
+
+        .glass-card {
+            background: rgba(39, 39, 87, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(134, 134, 172, 0.2);
+        }
+
+        /* Sidebar Styles */
+        #sidebar {
+            transition: width 0.3s ease-in-out;
+        }
+        #main-content {
+            transition: margin-left 0.3s ease-in-out;
+        }
+        
+        #sidebar.collapsed {
+            width: 88px; /* w-22 */
+        }
+        #sidebar.collapsed .nav-text, #sidebar.collapsed #sidebar-header h1 {
+            opacity: 0;
+            visibility: hidden;
+            width: 0;
+            transition: opacity 0.1s, width 0.3s;
+        }
+        #sidebar.collapsed .nav-link svg {
+            margin-right: 0;
+        }
+        #main-content.sidebar-collapsed {
+            margin-left: 88px;
+        }
+        .nav-text, #sidebar-header h1 {
+            transition: opacity 0.2s ease-in-out 0.1s, width 0.3s;
+        }
+
+        /* Mobile slide-in */
+        @media (max-width: 1023px) {
+            #sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                z-index: 60;
+                width: 256px !important; /* w-64 */
+            }
+            #sidebar.open {
+                transform: translateX(0);
+            }
+            #main-content {
+                margin-left: 0 !important;
+            }
+        }
+
+        /* Selected day style */
+        .day-selected {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        
+        #daily-agenda {
+             max-height: 0;
+             overflow: hidden;
+             transition: max-height 0.5s ease-in-out, margin-top 0.5s ease-in-out;
+        }
+
+        #daily-agenda.visible {
+            max-height: 500px; /* Adjust as needed */
+            margin-top: 1.5rem; /* Equivalent to mt-6 */
+        }
+
+    </style>
+</head>
+<body class="bg-[var(--dark-blue)]">
+    <div class="relative min-h-screen flex">
+        <!-- Collapsible Sidebar -->
+        <aside id="sidebar" class="glass-card fixed top-0 left-0 h-full w-64 p-6 flex flex-col z-50">
+            <button id="desktop-sidebar-toggle" class="hidden lg:flex absolute top-1/2 -right-4 transform -translate-y-1/2 w-8 h-8 rounded-full bg-[var(--accent-purple-2)] items-center justify-center text-white hover:bg-[var(--accent-purple-1)] transition-all z-10">
+                <svg id="desktop-toggle-icon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <div id="sidebar-header" class="mb-10 mt-4 overflow-hidden">
+                <h1 class="text-2xl font-bold text-white text-center whitespace-nowrap">Student Portal</h1>
+            </div>
+            <nav class="w-full flex-grow">
+                <ul class="space-y-2">
+                    <li><a href="studentdashboard.html" class="nav-link flex items-center p-3 rounded-lg text-white/70 hover:bg-white/10 transition-colors"><svg class="w-5 h-5 mr-3 transition-all flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h4"></path></svg><span class="nav-text whitespace-nowrap">Home</span></a></li>
+                    <li><a href="timetable.html" class="nav-link flex items-center p-3 rounded-lg text-white font-semibold bg-white/20 shadow-md"><svg class="w-5 h-5 mr-3 transition-all flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><span class="nav-text whitespace-nowrap">Timetable</span></a></li>
+                    <li><a href="repository.html" class="nav-link flex items-center p-3 rounded-lg text-white/70 hover:bg-white/10 transition-colors"><svg class="w-5 h-5 mr-3 transition-all flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v2a2 2 0 01-2 2m2-4v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4a2 2 0 012-2m2 4h10m-10 0v-2a2 2 0 012-2h6a2 2 0 012 2v2m-6-4h4"></path></svg><span class="nav-text whitespace-nowrap">Repository</span></a></li>
+                    <li><a href="leaveapplication.html" class="nav-link flex items-center p-3 rounded-lg text-white/70 hover:bg-white/10 transition-colors"><svg class="w-5 h-5 mr-3 transition-all flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="nav-text whitespace-nowrap">Leave Application</span></a></li>
+                    <li><a href="studentresult.html" class="nav-link flex items-center p-3 rounded-lg text-white/70 hover:bg-white/10 transition-colors"><svg class="w-5 h-5 mr-3 transition-all flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg><span class="nav-text whitespace-nowrap">Student Result</span></a></li>
+                    <li><a href="suggestionbox.html" class="nav-link flex items-center p-3 rounded-lg text-white/70 hover:bg-white/10 transition-colors"><svg class="w-5 h-5 mr-3 transition-all flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20.25h4.5m-15-2.25h15M12 16.5h4.5M3 13.5h18M12 9.75h4.5M3 6.75h18"></path></svg><span class="nav-text whitespace-nowrap">Suggestion Box</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <div id="main-content" class="flex-grow lg:ml-64">
+            <main class="flex-grow p-4 lg:p-8">
+                <div class="w-full max-w-7xl mx-auto">
+                    <div class="glass-card rounded-3xl shadow-xl p-6 md:p-8 mb-8 flex flex-col md:flex-row justify-between md:items-center gap-6">
+                        <div class="flex items-center gap-4">
+                            <button id="sidebar-toggle" class="lg:hidden p-2 rounded-md bg-white/10 text-white">
+                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </button>
+                            <div>
+                                <h1 class="text-3xl lg:text-5xl font-bold text-white">Monthly Timetable</h1>
+                                <p class="text-lg lg:text-2xl mt-2 font-medium text-white/70">Plan your month ahead.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4 self-end md:self-center">
+                             <div class="text-right">
+                                <h3 id="student-name" class="font-medium text-lg text-white"></h3>
+                                <p id="student-id" class="text-sm text-white/70"></p>
+                            </div>
+                            <div class="w-14 h-14 bg-[var(--accent-purple-1)] rounded-full flex items-center justify-center shadow-inner flex-shrink-0">
+                                <span id="student-initial" class="text-2xl font-bold text-[var(--dark-blue)]"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-3xl shadow-xl p-4 sm:p-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <button onclick="changeMonth(-1)" class="p-2 rounded-full hover:bg-white/10 transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                            </button>
+                            <h2 id="current-month-year" class="text-xl sm:text-2xl font-semibold text-center"></h2>
+                            <button onclick="changeMonth(1)" class="p-2 rounded-full hover:bg-white/10 transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-7 gap-1 sm:gap-2 text-center font-medium text-white/70 mb-4 text-xs sm:text-base">
+                            <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                        </div>
+
+                        <div id="calendar-grid" class="grid grid-cols-7 gap-2 sm:gap-4">
+                        </div>
+                    </div>
+                    
+                    <!-- Daily Agenda View for Mobile -->
+                    <div id="daily-agenda" class="lg:hidden">
+                        <h3 id="agenda-date" class="text-xl font-bold text-white mb-4"></h3>
+                        <div id="agenda-events" class="space-y-3"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const mobileSidebarToggle = document.getElementById('sidebar-toggle');
+            const desktopSidebarToggle = document.getElementById('desktop-sidebar-toggle');
+            const desktopToggleIcon = document.getElementById('desktop-toggle-icon');
+            const mobileToggleIcon = mobileSidebarToggle.querySelector('svg');
+            
+            mobileSidebarToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('open');
+                mobileToggleIcon.innerHTML = sidebar.classList.contains('open') 
+                    ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>`
+                    : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>`;
+            });
+            
+            if (desktopSidebarToggle) {
+                desktopSidebarToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('sidebar-collapsed');
+                    desktopToggleIcon.classList.toggle('rotate-180');
+                });
+            }
+
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth < 1024 && sidebar.classList.contains('open')) {
+                    if (!sidebar.contains(e.target) && !mobileSidebarToggle.contains(e.target)) {
+                        sidebar.classList.remove('open');
+                        mobileToggleIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>`;
+                    }
+                }
+            });
+
+            const studentData = { name: "Alex Williams", id: "67890", initial: "A" };
+            document.getElementById('student-name').textContent = studentData.name;
+            document.getElementById('student-id').textContent = `ID: ${studentData.id}`;
+            document.getElementById('student-initial').textContent = studentData.initial;
+
+            let currentDate = new Date(2025, 8, 1);
+            const monthYearEl = document.getElementById('current-month-year');
+            const calendarGrid = document.getElementById('calendar-grid');
+            const agendaView = document.getElementById('daily-agenda');
+            const agendaDateEl = document.getElementById('agenda-date');
+            const agendaEventsEl = document.getElementById('agenda-events');
+            
+            let selectedDayElement = null;
+
+            const monthlySchedule = {
+                "8-2025": {
+                    10: [{ subject: 'Calculus', color: 'blue' }],
+                    12: [{ subject: 'History', color: 'pink' }],
+                    15: [{ subject: 'Mid-Term Exams Start', color: 'green', isEvent: true }],
+                    22: [{ subject: 'Chemistry', color: 'purple' }, { subject: 'Tech Fest "Innovate"', color: 'green', isEvent: true }]
+                }
+            };
+            
+            const colorClasses = {
+                dot: {
+                    blue: 'bg-blue-400', purple: 'bg-purple-400',
+                    pink: 'bg-pink-400', green: 'bg-green-400',
+                },
+                full: {
+                    blue: 'bg-blue-900/80 text-blue-200', purple: 'bg-purple-900/80 text-purple-200',
+                    pink: 'bg-pink-900/80 text-pink-200', green: 'bg-green-900/80 text-green-200',
+                }
+            };
+
+            function updateAgenda(day, month, year) {
+                const monthKey = `${month}-${year}`;
+                const schedule = monthlySchedule[monthKey] || {};
+                const events = schedule[day] || [];
+                const date = new Date(year, month, day);
+
+                agendaDateEl.textContent = `Schedule for ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`;
+                agendaEventsEl.innerHTML = '';
+
+                if (events.length > 0) {
+                    events.forEach(item => {
+                        const eventEl = document.createElement('div');
+                        eventEl.className = `p-3 rounded-lg flex items-center ${colorClasses.full[item.color] || 'bg-gray-700'}`;
+                        const dotEl = document.createElement('div');
+                        dotEl.className = `w-3 h-3 rounded-full mr-3 flex-shrink-0 ${colorClasses.dot[item.color]}`;
+                        eventEl.appendChild(dotEl);
+                        const textEl = document.createElement('span');
+                        textEl.textContent = item.subject;
+                        textEl.className = 'font-medium';
+                        eventEl.appendChild(textEl);
+                        agendaEventsEl.appendChild(eventEl);
+                    });
+                    agendaView.classList.add('visible');
+                } else {
+                    agendaEventsEl.innerHTML = '<p class="text-white/60">No events scheduled for this day.</p>';
+                    agendaView.classList.add('visible');
+                }
+            }
+
+            window.renderCalendar = function() {
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                monthYearEl.textContent = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+                calendarGrid.innerHTML = '';
+                agendaView.classList.remove('visible');
+                selectedDayElement = null;
+
+                for (let i = 0; i < firstDay; i++) {
+                    calendarGrid.appendChild(document.createElement('div'));
+                }
+
+                const monthKey = `${month}-${year}`;
+                const schedule = monthlySchedule[monthKey] || {};
+                
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'group p-2 rounded-lg bg-black/20 shadow-sm flex flex-col text-left transition-colors hover:bg-black/40 aspect-square w-full overflow-hidden cursor-pointer';
+                    
+                    let dayContent = `<span class="font-bold text-lg text-center sm:text-left">${i}</span>`;
+                    const events = schedule[i] || [];
+
+                    if (events.length > 0) {
+                         // Desktop: Full event text
+                        dayContent += `<div class="mt-1 space-y-1 overflow-y-auto text-xs hidden sm:block">`;
+                        events.forEach(item => {
+                            dayContent += `<div class="${colorClasses.full[item.color]} p-1 rounded-md font-medium">${item.subject}</div>`;
+                        });
+                        dayContent += `</div>`;
+                        
+                        // Mobile: Dots
+                        dayContent += `<div class="flex justify-center items-end flex-grow space-x-1 sm:hidden">`;
+                        events.slice(0, 4).forEach(item => { // Show max 4 dots
+                            dayContent += `<div class="w-2 h-2 rounded-full ${colorClasses.dot[item.color]}"></div>`;
+                        });
+                        dayContent += `</div>`;
+                    }
+                    
+                    dayEl.innerHTML = dayContent;
+                    dayEl.addEventListener('click', () => {
+                        if (window.innerWidth < 1024) {
+                             if (selectedDayElement) {
+                                 selectedDayElement.classList.remove('day-selected');
+                             }
+                             dayEl.classList.add('day-selected');
+                             selectedDayElement = dayEl;
+                             updateAgenda(i, month, year);
+                        }
+                    });
+                    calendarGrid.appendChild(dayEl);
+                }
+            }
+
+            window.changeMonth = function(delta) {
+                currentDate.setMonth(currentDate.getMonth() + delta);
+                renderCalendar();
+            }
+
+            renderCalendar();
+            window.addEventListener('resize', renderCalendar);
+        });
+    </script>
+</body>
+</html>

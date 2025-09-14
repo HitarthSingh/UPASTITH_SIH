@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Attendance - Teacher Login</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js for 3D animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        :root {
+            --logo-height: 200px;
+            --nav-height: 105px;
+            --dark-blue: #02020a;
+            --light-purple: #D8CCF2;
+            --accent-purple-1: #8686AC;
+            --accent-purple-2: #505081;
+            --accent-purple-3: #272757;
+        }
+
+        .logo-img {
+            display: block;
+            height: var(--logo-height);
+            width: auto;
+            object-fit: contain;
+        }
+
+        nav {
+            height: var(--nav-height);
+            min-height: var(--nav-height);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark-blue);
+            color: var(--light-purple);
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 15% 50%, var(--accent-purple-2), transparent 40%),
+                radial-gradient(circle at 85% 30%, var(--accent-purple-3), transparent 40%),
+                radial-gradient(circle at 50% 90%, var(--accent-purple-1), transparent 40%);
+            filter: blur(120px);
+            animation: subtleAurora 20s ease-in-out infinite alternate;
+        }
+        @keyframes subtleAurora {
+            from { transform: scale(1) rotate(0deg); opacity: 0.7; }
+            to { transform: scale(1.1) rotate(15deg); opacity: 0.9; }
+        }
+
+        .glass-card {
+            background: rgba(39, 39, 87, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(134, 134, 172, 0.2);
+        }
+
+        /* Mobile menu styles */
+        .mobile-menu {
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        .mobile-menu.open {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+
+<body class="relative overflow-x-hidden">
+
+    <header class="sticky top-4 z-50 mx-auto max-w-6xl">
+        <nav class="glass-card rounded-2xl px-4 py-1 mx-4 flex items-center justify-between">
+            <a href="#" class="flex items-center flex-shrink-0 text-2xl font-bold">
+                <svg class="h-12 w-12 mr-2 text-light-purple" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Upastith
+            </a>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="/#features" class="font-semibold opacity-80 hover:opacity-100 transition-opacity">Features</a>
+                <a href="/aboutus" class="font-semibold opacity-80 hover:opacity-100 transition-opacity">About Us</a>
+            </div>
+            <a href="/"
+                class="hidden md:block bg-[var(--accent-purple-1)] text-[var(--dark-blue)] py-2 px-5 rounded-full font-bold text-sm shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200">
+                STUDENT LOGIN
+            </a>
+            <button id="mobile-menu-button" class="md:hidden text-2xl p-2 focus:outline-none">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+
+        <div id="mobile-menu" class="mobile-menu glass-card fixed top-0 right-0 h-full w-64 z-[60] p-6 shadow-2xl md:hidden">
+            <div class="flex justify-end mb-8">
+                <button id="close-menu-button" class="text-2xl p-2 focus:outline-none">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <ul class="space-y-6 text-lg font-semibold text-center">
+                <li><a href="/#features" class="block opacity-80 hover:opacity-100">Features</a></li>
+                <li><a href="/aboutus" class="block opacity-80 hover:opacity-100">About Us</a></li>
+                <li>
+                    <a href="/" class="block bg-[var(--accent-purple-1)] text-[var(--dark-blue)] py-3 rounded-xl transition">Student Login</a>
+                </li>
+            </ul>
+        </div>
+    </header>
+
+    <main>
+        <section class="min-h-screen flex items-center justify-center p-5 pt-24 md:pt-8 relative">
+            <!-- 3D Animation Container -->
+            <div id="three-container" class="absolute top-0 left-0 w-full h-full z-0"></div>
+            
+            <div class="w-full max-w-sm text-center z-20">
+                <div
+                    class="glass-card rounded-2xl shadow-xl shadow-black/10 p-8">
+                    <div class="mb-8 text-center">
+                        <h2 class="text-2xl font-bold text-white">Welcome Back!</h2>
+                        <p class="text-white/70">Please sign in to your dashboard.</p>
+                    </div>
+
+                    <form action="/login/teacher" method="POST" id="teacher-login-form"
+                        class="space-y-8">
+
+                        <div class="relative">
+                            <input type="text" id="teacher_id" name="teacher_id"
+                                class="block px-2.5 pb-2.5 pt-4 w-full text-sm text-white bg-black/20 rounded-lg border-1 border-white/20 appearance-none focus:outline-none focus:ring-0 focus:border-[var(--light-purple)] peer"
+                                placeholder=" " required />
+                            <label for="teacher_id"
+                                class="absolute text-sm text-white/70 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-focus:text-[var(--light-purple)] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1">
+                                <i class="fas fa-user-tie mr-1"></i>
+                                Teacher ID
+                            </label>
+                        </div>
+
+                        <div class="relative">
+                            <input type="password" id="password" name="password"
+                                class="block px-2.5 pb-2.5 pt-4 w-full text-sm text-white bg-black/20 rounded-lg border-1 border-white/20 appearance-none focus:outline-none focus:ring-0 focus:border-[var(--light-purple)] peer"
+                                placeholder=" " required />
+                            <label for="password"
+                                class="absolute text-sm text-white/70 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-focus:text-[var(--light-purple)] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1">
+                                <i class="fas fa-key mr-1"></i>
+                                Password
+                            </label>
+                        </div>
+
+                        <div class="text-right -mt-4">
+                            <a href="/forgetpassword"
+                                class="text-xs font-medium text-white/80 hover:text-white transition-colors">Forgot
+                                Password?</a>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-[var(--accent-purple-1)] text-[var(--dark-blue)] py-3 rounded-xl font-bold text-base shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200">
+                            SIGN IN
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mobile menu logic
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const closeMenuButton = document.getElementById('close-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const navLinks = mobileMenu.querySelectorAll('a');
+
+            mobileMenuButton.addEventListener('click', () => mobileMenu.classList.add('open'));
+            closeMenuButton.addEventListener('click', () => mobileMenu.classList.remove('open'));
+            navLinks.forEach(link => link.addEventListener('click', () => mobileMenu.classList.remove('open')));
+
+            // --- THREE.JS 3D ANIMATION SETUP ---
+            const container = document.getElementById('three-container');
+            if (container) {
+                let scene, camera, renderer, points;
+                let mouseX = 0, mouseY = 0;
+                const windowHalfX = window.innerWidth / 2;
+                const windowHalfY = window.innerHeight / 2;
+                let clock = new THREE.Clock();
+
+                function initThree() {
+                    scene = new THREE.Scene();
+                    
+                    camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+                    camera.position.z = 10;
+
+                    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                    renderer.setSize(container.clientWidth, container.clientHeight);
+                    renderer.setPixelRatio(window.devicePixelRatio);
+                    container.appendChild(renderer.domElement);
+                    
+                    const particlesCount = 5000;
+                    const positions = new Float32Array(particlesCount * 3);
+
+                    for(let i = 0; i < particlesCount * 3; i++) {
+                        positions[i] = (Math.random() - 0.5) * 20;
+                    }
+
+                    const particlesGeometry = new THREE.BufferGeometry();
+                    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+                    const particlesMaterial = new THREE.PointsMaterial({
+                        color: 0x8686AC,
+                        size: 0.02,
+                        blending: THREE.AdditiveBlending,
+                        transparent: true,
+                        opacity: 0.8
+                    });
+
+                    points = new THREE.Points(particlesGeometry, particlesMaterial);
+                    scene.add(points);
+
+                    document.addEventListener('mousemove', onDocumentMouseMove, false);
+                    window.addEventListener('resize', onWindowResize, false);
+                    
+                    animate();
+                }
+
+                function onDocumentMouseMove(event) {
+                    mouseX = event.clientX - windowHalfX;
+                    mouseY = event.clientY - windowHalfY;
+                }
+
+                function animate() {
+                    requestAnimationFrame(animate);
+                    const elapsedTime = clock.getElapsedTime();
+
+                    points.rotation.y = elapsedTime * 0.05 + (mouseX / windowHalfX) * 0.3;
+                    points.rotation.x = elapsedTime * 0.02 + (mouseY / windowHalfY) * 0.3;
+
+                    const positionAttribute = points.geometry.attributes.position;
+                    const count = positionAttribute.count;
+
+                    for (let i = 0; i < count; i++) {
+                        const y = positionAttribute.getY(i);
+                        const x = positionAttribute.getX(i);
+                        positionAttribute.setY(i, y + Math.sin(elapsedTime + x * 0.5) * 0.001);
+                    }
+                    positionAttribute.needsUpdate = true;
+
+                    camera.lookAt(scene.position);
+                    renderer.render(scene, camera);
+                }
+
+                function onWindowResize() {
+                    camera.aspect = container.clientWidth / container.clientHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(container.clientWidth, container.clientHeight);
+                }
+
+                initThree();
+            }
+        });
+    </script>
+</body>
+
+</html>
+

@@ -1,0 +1,35 @@
+before starting off.....
+make env (environment variable)
+//python app.py is used to execute
+//virtualenv env
+//.\env\Scripts\activate.ps1      to activate the env 
+make static and templates forder
+For database set up use pip install flask-sqlalchemy command
+1.whatever is in the static folder  is used to get served as it is
+2. The template folder is used to render html files using (render_template) it is used with return statement 
+
+<form action="/products">   This is how to land on different pages
+
+from app import db 
+db.create_all()   // in python interpretor
+
+
+ todo = Todo(title="TEST", desc="Test desc")
+    db.session(Todo)                           
+    db.commit(Todo)
+
+
+allTodo = Todo.query.all()
+print(allTodo)                 # this displays all the queries in the db
+
+usually a base html file is made in templates and then its is inherited in other html files
+using jblock --- {% block  %}  --content of base --   {% endblock  %}   in base file
+and   {%extends 'base.html' %}{% block  %} --content of main--    {% endblock  %}
+
+
+
+<script src="{{ url_for('', filename='') }}"></script> 
+this is how js is inserted statically 
+
+ <link rel="stylesheet" {{ url_for('', filename='') }}>
+ this is how css is inserted

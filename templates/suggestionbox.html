@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suggestion Box</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --dark-blue: #02020a;
+            --light-purple: #D8CCF2;
+            --accent-purple-1: #8686AC;
+            --accent-purple-2: #505081;
+            --accent-purple-3: #272757;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-blue);
+            color: var(--light-purple);
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 15% 50%, var(--accent-purple-2), transparent 40%),
+                radial-gradient(circle at 85% 30%, var(--accent-purple-3), transparent 40%),
+                radial-gradient(circle at 50% 90%, var(--accent-purple-1), transparent 40%);
+            filter: blur(120px);
+            animation: subtleAurora 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes subtleAurora {
+            from {
+                transform: scale(1) rotate(0deg);
+                opacity: 0.7;
+            }
+
+            to {
+                transform: scale(1.1) rotate(15deg);
+                opacity: 0.9;
+            }
+        }
+
+        .glass-card {
+            background: rgba(39, 39, 87, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(134, 134, 172, 0.2);
+        }
+
+        /* Sidebar Styles */
+        #sidebar {
+            transition: width 0.3s ease-in-out;
+        }
+
+        #main-content {
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        #sidebar.collapsed {
+            width: 88px;
+            /* w-22 */
+        }
+
+        #sidebar.collapsed .nav-text,
+        #sidebar.collapsed #sidebar-header h1 {
+            opacity: 0;
+            visibility: hidden;
+            width: 0;
+            transition: opacity 0.1s, width 0.3s;
+        }
+
+        #sidebar.collapsed .nav-link svg {
+            margin-right: 0;
+        }
+
+        #main-content.sidebar-collapsed {
+            margin-left: 88px;
+        }
+
+        .nav-text,
+        #sidebar-header h1 {
+            transition: opacity 0.2s ease-in-out 0.1s, width 0.3s;
+        }
+
+        /* Mobile slide-in */
+        @media (max-width: 1023px) {
+            #sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                z-index: 60;
+                width: 256px !important;
+                /* w-64 */
+            }
+
+            #sidebar.open {
+                transform: translateX(0);
+            }
+
+            #main-content {
+                margin-left: 0 !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-[var(--dark-blue)]">
+    <div class="relative flex min-h-screen">
+        <aside id="sidebar" class="glass-card fixed top-0 left-0 z-50 flex h-full w-64 flex-col p-6">
+            <button id="desktop-sidebar-toggle" class="absolute top-1/2 -right-4 z-10 hidden h-8 w-8 transform -translate-y-1/2 items-center justify-center rounded-full bg-[var(--accent-purple-2)] text-white transition-all hover:bg-[var(--accent-purple-1)] lg:flex">
+                <svg id="desktop-toggle-icon" class="h-4 w-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+            <div id="sidebar-header" class="mb-10 mt-4 overflow-hidden">
+                <h1 class="whitespace-nowrap text-center text-2xl font-bold text-white">Student Portal</h1>
+            </div>
+            <nav class="w-full flex-grow">
+                <ul class="space-y-2">
+                    <li><a href="studentdashboard.html" class="nav-link flex items-center rounded-lg p-3 text-white/70 transition-colors hover:bg-white/10"><svg class="mr-3 h-5 w-5 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h4"></path>
+                            </svg><span class="nav-text whitespace-nowrap">Home</span></a></li>
+                    <li><a href="timetable.html" class="nav-link flex items-center rounded-lg p-3 text-white/70 transition-colors hover:bg-white/10"><svg class="mr-3 h-5 w-5 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg><span class="nav-text whitespace-nowrap">Timetable</span></a></li>
+                    <li><a href="repository.html" class="nav-link flex items-center rounded-lg p-3 text-white/70 transition-colors hover:bg-white/10"><svg class="mr-3 h-5 w-5 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v2a2 2 0 01-2 2m2-4v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4a2 2 0 012-2m2 4h10m-10 0v-2a2 2 0 012-2h6a2 2 0 012 2v2m-6-4h4"></path>
+                            </svg><span class="nav-text whitespace-nowrap">Repository</span></a></li>
+                    <li><a href="leaveapplication.html" class="nav-link flex items-center rounded-lg p-3 text-white/70 transition-colors hover:bg-white/10"><svg class="mr-3 h-5 w-5 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg><span class="nav-text whitespace-nowrap">Leave Application</span></a></li>
+                    <li><a href="studentresult.html" class="nav-link flex items-center rounded-lg p-3 text-white/70 transition-colors hover:bg-white/10"><svg class="mr-3 h-5 w-5 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                            </svg><span class="nav-text whitespace-nowrap">Student Result</span></a></li>
+                    <li><a href="suggestionbox.html" class="nav-link flex items-center rounded-lg bg-white/20 p-3 font-semibold text-white shadow-md"><svg class="mr-3 h-5 w-5 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20.25h4.5m-15-2.25h15M12 16.5h4.5M3 13.5h18M12 9.75h4.5M3 6.75h18"></path>
+                            </svg><span class="nav-text whitespace-nowrap">Suggestion Box</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <div id="sidebar-backdrop" class="fixed inset-0 z-[59] hidden bg-black/50 lg:hidden"></div>
+
+        <button id="sidebar-toggle" class="glass-card fixed top-4 left-4 z-[61] rounded-md p-2 text-white lg:hidden">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
+
+        <div id="main-content" class="flex-grow lg:ml-64">
+            <main class="flex-grow p-4 pt-20 lg:p-8 lg:pt-8">
+                <div class="mx-auto w-full max-w-4xl">
+                    <div class="glass-card mb-8 flex flex-col justify-between rounded-3xl p-6 shadow-xl md:flex-row md:items-start md:p-8">
+                        <div>
+                            <h1 class="text-3xl font-bold text-white lg:text-5xl">Suggestion Box</h1>
+                            <p class="mt-2 text-xl font-medium text-white/70 lg:text-2xl">Share your thoughts with us.</p>
+                        </div>
+                        <div class="mt-4 flex items-center space-x-4 md:mt-0">
+                            <div class="text-right">
+                                <h3 id="student-name" class="text-lg font-medium text-white"></h3>
+                                <p id="student-id" class="text-sm text-white/70"></p>
+                            </div>
+                            <div class="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-purple-1)] shadow-inner">
+                                <span id="student-initial" class="text-2xl font-bold text-[var(--dark-blue)]"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-3xl p-8 shadow-xl">
+                        <form>
+                            <div class="mb-6">
+                                <label for="name" class="mb-2 block text-lg font-medium text-white/90">Your Name (Optional)</label>
+                                <input type="text" id="name" name="name" class="w-full rounded-lg border border-white/20 bg-black/20 p-4 text-white transition-all focus:outline-none focus:ring-2 focus:ring-[var(--accent-purple-1)]">
+                            </div>
+                            <div class="mb-6">
+                                <label for="subject" class="mb-2 block text-lg font-medium text-white/90">Subject</label>
+                                <input type="text" id="subject" name="subject" class="w-full rounded-lg border border-white/20 bg-black/20 p-4 text-white transition-all focus:outline-none focus:ring-2 focus:ring-[var(--accent-purple-1)]">
+                            </div>
+                            <div class="mb-6">
+                                <label for="suggestion" class="mb-2 block text-lg font-medium text-white/90">Your Suggestion</label>
+                                <textarea id="suggestion" name="suggestion" rows="6" class="w-full rounded-lg border border-white/20 bg-black/20 p-4 text-white transition-all focus:outline-none focus:ring-2 focus:ring-[var(--accent-purple-1)]"></textarea>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="w-full rounded-full bg-[var(--accent-purple-1)] px-8 py-3 font-bold text-[var(--dark-blue)] transition-colors hover:bg-[var(--light-purple)] sm:w-auto">
+                                    Submit Suggestion
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- 0. NAVIGATION TOGGLE ---
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const mobileSidebarToggle = document.getElementById('sidebar-toggle');
+            const desktopSidebarToggle = document.getElementById('desktop-sidebar-toggle');
+            const desktopToggleIcon = document.getElementById('desktop-toggle-icon');
+            const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+
+            const openMobileSidebar = () => {
+                sidebar.classList.add('open');
+                sidebarBackdrop.classList.remove('hidden');
+            }
+
+            const closeMobileSidebar = () => {
+                sidebar.classList.remove('open');
+                sidebarBackdrop.classList.add('hidden');
+            }
+
+            mobileSidebarToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (sidebar.classList.contains('open')) {
+                    closeMobileSidebar();
+                } else {
+                    openMobileSidebar();
+                }
+            });
+
+            if (desktopSidebarToggle) {
+                desktopSidebarToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('sidebar-collapsed');
+                    desktopToggleIcon.classList.toggle('rotate-180');
+                });
+            }
+
+            // Close sidebar when clicking on the backdrop
+            sidebarBackdrop.addEventListener('click', closeMobileSidebar);
+
+
+            // --- 1. MOCK DATA & INITIAL SETUP ---
+            const studentData = {
+                name: "Alex Williams",
+                id: "67890",
+                initial: "A"
+            };
+
+            function populateStudentInfo() {
+                document.getElementById('student-name').textContent = studentData.name;
+                document.getElementById('student-id').textContent = `ID: ${studentData.id}`;
+                document.getElementById('student-initial').textContent = studentData.initial;
+            }
+
+            // --- 2. INITIALIZE ---
+            populateStudentInfo();
+        });
+    </script>
+</body>
+
+</html>
