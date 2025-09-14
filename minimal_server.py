@@ -8,6 +8,7 @@ import random
 import secrets
 from datetime import datetime, timedelta
 from face_utils import FaceRecognitionSystem
+from db_leaves import init_leave_db
 import json
 
 app = Flask(__name__)
@@ -130,6 +131,41 @@ def init_auth_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             expires_at TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+    
+    conn.commit()
+    conn.close()
+
+def init_attendance_db():
+    """Initialize attendance database"""
+    conn = sqlite3.connect('attendance.db')
+    cursor = conn.cursor()
+    
+    # Create attendance table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS attendance (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_name TEXT NOT NULL,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            status TEXT DEFAULT 'present',
+            confidence REAL,
+            method TEXT DEFAULT 'face_recognition'
+        )
+    ''')
+    
+    # Create class_attendance table for class-specific attendance
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS class_attendance (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id TEXT NOT NULL,
+            student_name TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            class_id INTEGER,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            status TEXT DEFAULT 'present',
+            confidence REAL,
+            method TEXT DEFAULT 'face_recognition'
         )
     ''')
     
@@ -434,10 +470,12 @@ def create_sample_classes():
         ]
         
         for class_data in sample_classes:
+            # Map teacher names to teacher IDs
+            teacher_id = 'TCH001' if class_data[1] == 'Prof. Eleanor' else 'TCH002'
             cursor.execute('''
-                INSERT INTO classes (subject_name, teacher_name, start_time, end_time, day_of_week, room_number, is_active)
-                VALUES (?, ?, ?, ?, ?, ?, 1)
-            ''', class_data)
+                INSERT INTO classes (subject_name, teacher_name, start_time, end_time, day_of_week, room_number, teacher_id, is_active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+            ''', class_data + (teacher_id,))
         
         # Get all class IDs
         cursor.execute('SELECT id FROM classes')
@@ -466,6 +504,38 @@ def create_sample_classes():
         
     except Exception as e:
         print(f"Error creating sample classes: {e}")
+
+def create_sample_leave_requests():
+    """Create sample leave requests for testing"""
+    try:
+        conn = sqlite3.connect('leaves.db')
+        cursor = conn.cursor()
+        
+        # Check if data already exists
+        cursor.execute('SELECT COUNT(*) FROM leave_applications')
+        if cursor.fetchone()[0] > 0:
+            conn.close()
+            return
+        
+        # Sample leave requests
+        sample_requests = [
+            ('Alice Johnson', 'STU001', 'Medical appointment', '2024-01-15', '2024-01-15'),
+            ('Bob Smith', 'STU002', 'Family emergency', '2024-01-16', '2024-01-17'),
+            ('Charlie Brown', 'STU003', 'Personal reasons', '2024-01-18', '2024-01-18'),
+        ]
+        
+        for request_data in sample_requests:
+            cursor.execute('''
+                INSERT INTO leave_applications (student_name, student_id, reason, start_date, end_date, status)
+                VALUES (?, ?, ?, ?, ?, 'pending')
+            ''', request_data)
+        
+        conn.commit()
+        conn.close()
+        print("Sample leave requests created successfully")
+        
+    except Exception as e:
+        print(f"Error creating sample leave requests: {e}")
 
 def create_sample_enrollments():
     """Create sample student enrollments"""
@@ -750,12 +820,34 @@ def teacher_login_form():
 def submit_leave_request():
     """Submit a new leave request"""
     try:
-        data = request.get_json()
-        student_name = data.get('student_name')
-        student_id = data.get('student_id')
-        reason = data.get('reason')
-        start_date = data.get('start_date')
-        end_date = data.get('end_date')
+        # Handle both JSON and form data
+        if request.is_json:
+            data = request.get_json()
+            student_name = data.get('student_name')
+            student_id = data.get('student_id')
+            reason = data.get('reason')
+            start_date = data.get('start_date')
+            end_date = data.get('end_date')
+        else:
+            # Handle form data (multipart/form-data)
+            if 'user_id' not in session:
+                return jsonify({'success': False, 'message': 'Please log in first'}), 401
+            
+            # Get student information from session
+            conn = sqlite3.connect('authentication.db')
+            cursor = conn.cursor()
+            cursor.execute('SELECT student_id, full_name FROM users WHERE id = ?', (session['user_id'],))
+            user = cursor.fetchone()
+            conn.close()
+            
+            if not user:
+                return jsonify({'success': False, 'message': 'User not found'}), 404
+            
+            student_id = user[0] or f"student_{session['user_id']}"
+            student_name = user[1]
+            reason = request.form.get('reason')
+            start_date = request.form.get('start_date')
+            end_date = request.form.get('end_date')
         
         if not all([student_name, reason, start_date, end_date]):
             return jsonify({'success': False, 'message': 'Missing required fields'}), 400
@@ -868,6 +960,48 @@ def reject_leave_request(request_id):
         return jsonify({
             'success': True,
             'message': 'Leave request rejected successfully'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
+
+@app.route('/api/teacher/me', methods=['GET'])
+def get_current_teacher():
+    """Get current logged-in teacher information"""
+    try:
+        if 'user_id' not in session or session.get('user_type') != 'teacher':
+            return jsonify({'success': False, 'message': 'Please log in as a teacher first'}), 401
+        
+        conn = sqlite3.connect('authentication.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT id, username, full_name, email, teacher_id
+            FROM users 
+            WHERE id = ? AND user_type = 'teacher'
+        ''', (session['user_id'],))
+        
+        teacher = cursor.fetchone()
+        conn.close()
+        
+        if not teacher:
+            return jsonify({'success': False, 'message': 'Teacher not found'}), 404
+        
+        # Generate avatar URL based on teacher name
+        initials = ''.join([word[0].upper() for word in teacher[2].split()[:2]]) if teacher[2] else 'T'
+        avatar_url = f'https://placehold.co/40x40/d8ccf2/02020a?text={initials}'
+        
+        return jsonify({
+            'success': True,
+            'teacher': {
+                'id': teacher[0],
+                'username': teacher[1],
+                'name': teacher[2] or teacher[1],
+                'email': teacher[3],
+                'teacher_id': teacher[4],
+                'department': 'Computer Science',  # Default department
+                'avatarUrl': avatar_url
+            }
         })
         
     except Exception as e:
@@ -1414,11 +1548,26 @@ def get_classes_by_date():
         print(f"Error fetching classes by date: {e}")
         return jsonify({'success': False, 'message': 'Failed to fetch classes'}), 500
 
+
 if __name__ == "__main__":
     print("="*50)
     print("MINIMAL SERVER WITH AUTHENTICATION")
     print("="*50)
-    print("Database: authentication.db")
+    
+    # Initialize all databases
+    print("Initializing databases...")
+    init_auth_db()
+    init_attendance_db()
+    init_leave_db('leaves.db')
+    init_classes_db()
+    
+    # Create sample data
+    print("Creating sample data...")
+    create_sample_users()
+    create_sample_leave_requests()
+    create_sample_classes()
+    
+    print("Database: authentication.db, attendance.db, leaves.db, classes.db")
     print("\nSample users created:")
     print("Students: student1, student2, student3 (password: password123)")
     print("Teachers: teacher1, teacher2 (password: teacher123)")

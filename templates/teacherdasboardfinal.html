@@ -236,7 +236,7 @@
                                 <select id="class-select-records" class="w-full bg-black/20 text-white rounded-lg p-3 border-0 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none">
                                     <option value="">Select a class...</option>
                                 </select>
-                                <input type="date" id="date-select-records" value="2025-09-08" class="w-full bg-black/20 text-white rounded-lg p-3 border-0 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none" style="color-scheme: dark;">
+                                <input type="date" id="date-select-records" value="dd-mm-yyyy" class="w-full bg-black/20 text-white rounded-lg p-3 border-0 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none" style="color-scheme: dark;">
                             </div>
                             <div id="attendance-display" class="mt-4">
                                 <p class="text-center text-white/70 p-4">Please select a class and date.</p>
@@ -350,16 +350,23 @@
                 const deptEl = document.getElementById('teacher-department');
                 const avatarEl = document.getElementById('teacher-avatar');
                 try {
-                    // const response = await fetch(`${API_BASE_URL}/api/teacher/me`);
-                    // const teacher = await response.json();
-                    const mockTeacher = { name: 'Prof. Eleanor', department: 'Computer Science', avatarUrl: 'https://placehold.co/40x40/d8ccf2/02020a?text=EP' };
+                    const response = await fetch('/api/teacher/me');
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const result = await response.json();
+                    if (!result.success) throw new Error(result.message);
+                    
+                    const teacher = result.teacher;
+                    nameEl.textContent = teacher.name;
+                    deptEl.textContent = teacher.department;
+                    avatarEl.src = teacher.avatarUrl;
+                } catch (error) {
+                    console.error("Error fetching teacher info:", error);
+                    // Fallback to mock data if API fails
+                    const mockTeacher = { name: 'Teacher', department: 'Computer Science', avatarUrl: 'https://placehold.co/40x40/d8ccf2/02020a?text=T' };
                     nameEl.textContent = mockTeacher.name;
                     deptEl.textContent = mockTeacher.department;
                     avatarEl.src = mockTeacher.avatarUrl;
-                } catch (error) {
-                    console.error("Error fetching teacher info:", error);
-                    nameEl.textContent = 'Error';
-                    deptEl.textContent = 'Could not load data';
                 }
             };
             
@@ -448,40 +455,102 @@
                 });
             };
 
-            // --- DATABASE TEAM: Endpoint: GET /api/leaves ---
+            // --- DATABASE TEAM: Endpoint: GET /api/leave/requests ---
             const renderLeaveRequests = async () => {
-                const listContainer = document.getElementById('leaveRequestsList');
-                listContainer.innerHTML = `<p class="text-center text-white/70 p-4">Loading requests...</p>`;
+                const displayContainer = document.getElementById('leaveRequestsList');
+                
                 try {
-                    const response = await fetch(`${API_BASE_URL}/api/leaves`);
+                    const response = await fetch('/api/leave/requests');
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    const requests = await response.json();
-                    listContainer.innerHTML = '';
-                    if(requests.length === 0) {
-                        listContainer.innerHTML = `<p class="text-center text-white/70 p-4">No pending requests.</p>`;
+                    
+                    const result = await response.json();
+                    
+                    if (!result.success) {
+                        displayContainer.innerHTML = '<p class="text-center text-red-500 p-4">Failed to load leave requests.</p>';
                         return;
                     }
-                    requests.forEach(req => {
-                        const reqElement = document.createElement('div');
-                        reqElement.className = 'p-3 bg-black/20 rounded-lg';
-                        reqElement.setAttribute('data-request-id', req.id);
-                        reqElement.innerHTML = `
-                            <div class="flex justify-between items-start">
+                    
+                    const leaveRequests = result.requests || [];
+                    
+                    if (leaveRequests.length === 0) {
+                        displayContainer.innerHTML = '<p class="text-center text-white/70 p-4">No pending leave requests.</p>';
+                        return;
+                    }
+                    
+                    const requestsHTML = leaveRequests.map(request => `
+                        <div class="p-3 bg-black/20 rounded-lg">
+                            <div class="flex justify-between items-start mb-2">
                                 <div>
-                                    <p class="font-bold text-white">${req.student}</p>
-                                    <p class="text-sm text-white/70">${req.class} - ${req.date}</p>
+                                    <h4 class="font-semibold text-white">${request.student_name}</h4>
+                                    <p class="text-sm text-white/70">${request.start_date} to ${request.end_date}</p>
                                 </div>
-                                <div class="flex space-x-2 flex-shrink-0">
-                                    <button data-action="approve" data-request-id="${req.id}" class="leave-action-btn bg-green-500 text-white w-8 h-8 rounded-full hover:bg-green-600 transition-transform hover:scale-110 flex justify-center items-center">&#10003;</button>
-                                    <button data-action="deny" data-request-id="${req.id}" class="leave-action-btn bg-red-500 text-white w-8 h-8 rounded-full hover:bg-red-600 transition-transform hover:scale-110 flex justify-center items-center">&#10005;</button>
-                                </div>
+                                <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(request.status)}">${request.status.charAt(0).toUpperCase() + request.status.slice(1)}</span>
                             </div>
-                            <p class="text-sm text-white/80 mt-2 p-2 bg-black/10 rounded-lg italic">"${req.message}"</p>`;
-                        listContainer.appendChild(reqElement);
-                    });
+                            <p class="text-sm text-white/80 mb-3">${request.reason}</p>
+                            ${request.status === 'pending' ? `
+                                <div class="flex space-x-2">
+                                    <button onclick="approveLeaveRequest(${request.id})" class="px-3 py-1 text-xs bg-green-500/20 text-green-400 rounded hover:bg-green-500/30 transition-colors">Approve</button>
+                                    <button onclick="rejectLeaveRequest(${request.id})" class="px-3 py-1 text-xs bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">Reject</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('');
+                    
+                    displayContainer.innerHTML = requestsHTML;
                 } catch (error) {
                     console.error('Failed to fetch leave requests:', error);
-                    listContainer.innerHTML = `<p class="text-center text-red-500 p-4">Error loading requests. Is the server running?</p>`;
+                    displayContainer.innerHTML = '<p class="text-center text-red-500 p-4">Error loading leave requests.</p>';
+                }
+            };
+
+            const getStatusColor = (status) => {
+                switch (status) {
+                    case 'pending': return 'bg-yellow-500/20 text-yellow-400';
+                    case 'approved': return 'bg-green-500/20 text-green-400';
+                    case 'rejected': return 'bg-red-500/20 text-red-400';
+                    default: return 'bg-gray-500/20 text-gray-400';
+                }
+            };
+
+            // --- DATABASE TEAM: Endpoint: POST /api/leave/approve/:id ---
+            window.approveLeaveRequest = async (requestId) => {
+                try {
+                    const response = await fetch(`/api/leave/approve/${requestId}`, {
+                        method: 'POST'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok && result.success) {
+                        showToast('Leave request approved successfully!');
+                        renderLeaveRequests(); // Refresh the list
+                    } else {
+                        showToast(result.message || 'Failed to approve leave request.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error approving leave request:', error);
+                    showToast('Network error. Please try again.', 'error');
+                }
+            };
+
+            // --- DATABASE TEAM: Endpoint: POST /api/leave/reject/:id ---
+            window.rejectLeaveRequest = async (requestId) => {
+                try {
+                    const response = await fetch(`/api/leave/reject/${requestId}`, {
+                        method: 'POST'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok && result.success) {
+                        showToast('Leave request rejected successfully!');
+                        renderLeaveRequests(); // Refresh the list
+                    } else {
+                        showToast(result.message || 'Failed to reject leave request.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error rejecting leave request:', error);
+                    showToast('Network error. Please try again.', 'error');
                 }
             };
 

@@ -370,14 +370,17 @@
                 };
                 studentData.schedule.forEach(cls => {
                     const classEl = document.createElement('div');
-                    // This new layout is more robust for mobile screens
-                    classEl.className = 'flex justify-between items-center p-4 bg-black/20 rounded-lg shadow-sm';
+                    // Improved responsive layout for mobile
+                    classEl.className = 'flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-black/20 rounded-lg shadow-sm';
                     classEl.innerHTML = `
-                        <div class="flex items-center min-w-0">
-                            <p class="font-medium text-white/90 text-sm sm:text-base w-24 flex-shrink-0">${cls.time}</p>
-                            <span class="${colorClasses[cls.color] || 'bg-gray-700'} px-3 py-1.5 rounded-full font-semibold text-xs sm:text-sm truncate">${cls.subject}</span>
+                        <div class="flex items-center w-full sm:w-auto">
+                            <p class="font-medium text-white/90 text-sm sm:text-base w-20 sm:w-24 flex-shrink-0">${cls.time}</p>
+                            <span class="${colorClasses[cls.color] || 'bg-gray-700'} px-3 py-1.5 rounded-full font-semibold text-xs sm:text-sm truncate flex-1 min-w-0">
+                                ${cls.subject}
+                            </span>
                         </div>
-                        <button onclick="openFaceRecognition('${cls.subject}')" class="flex-shrink-0 px-3 py-2 bg-[var(--accent-purple-1)] text-[var(--dark-blue)] rounded-full shadow-md hover:bg-[var(--light-purple)] transition-colors ml-3 text-sm font-semibold">
+                        <button onclick="openFaceRecognition('${cls.subject}')" 
+                                class="w-full sm:w-auto flex-shrink-0 px-4 py-2 bg-[var(--accent-purple-1)] text-[var(--dark-blue)] rounded-full shadow-md hover:bg-[var(--light-purple)] transition-colors text-sm font-semibold whitespace-nowrap">
                             Mark Attendance
                         </button>
                     `;

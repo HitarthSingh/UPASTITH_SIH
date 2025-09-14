@@ -187,34 +187,39 @@
 
                     <!-- Leave Application Form -->
                     <div class="glass-card rounded-3xl shadow-xl p-8">
-                        <form>
+                        <form id="leave-application-form">
                             <div class="mb-6">
                                 <label for="reason" class="block text-lg font-medium text-white/80 mb-2">Reason for Leave</label>
-                                <textarea id="reason" name="reason" rows="4" class="w-full p-4 rounded-lg input-custom transition-all text-white"></textarea>
+                                <textarea id="reason" name="reason" rows="4" class="w-full p-4 rounded-lg input-custom transition-all text-white" required></textarea>
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <div>
                                     <label for="start-date" class="block text-lg font-medium text-white/80 mb-2">Start Date</label>
-                                    <input type="date" id="start-date" name="start-date" class="w-full p-4 rounded-lg input-custom transition-all text-white/70" style="color-scheme: dark;">
+                                    <input type="date" id="start-date" name="start-date" class="w-full p-4 rounded-lg input-custom transition-all text-white/70" style="color-scheme: dark;" required>
                                 </div>
                                 <div>
                                     <label for="end-date" class="block text-lg font-medium text-white/80 mb-2">End Date</label>
-                                    <input type="date" id="end-date" name="end-date" class="w-full p-4 rounded-lg input-custom transition-all text-white/70" style="color-scheme: dark;">
+                                    <input type="date" id="end-date" name="end-date" class="w-full p-4 rounded-lg input-custom transition-all text-white/70" style="color-scheme: dark;" required>
                                 </div>
                             </div>
 
                             <div class="mb-6">
-                                <label for="attachments" class="block text-lg font-medium text-white/80 mb-2">Attach Documents</label>
+                                <label for="attachments" class="block text-lg font-medium text-white/80 mb-2">Attach Documents (Optional)</label>
                                 <input type="file" id="attachments" name="attachments" multiple class="w-full p-2 rounded-lg input-custom transition-all text-white/70 cursor-pointer">
                             </div>
 
                             <div class="text-center mt-8">
-                                <button type="submit" class="w-full sm:w-auto btn-custom font-medium px-8 py-3 rounded-full">
+                                <button type="submit" id="submit-btn" class="w-full sm:w-auto btn-custom font-medium px-8 py-3 rounded-full">
                                     Submit Application
                                 </button>
                             </div>
                         </form>
+                        
+                        <!-- Success/Error Message -->
+                        <div id="form-message" class="mt-4 p-3 rounded-lg hidden">
+                            <p id="form-message-text" class="text-center font-medium"></p>
+                        </div>
                     </div>
                 </div>
             </main>
@@ -263,7 +268,67 @@
                 document.getElementById('student-initial').textContent = studentData.initial;
             }
 
-            // --- 2. INITIALIZE ---
+            // --- 2. LEAVE APPLICATION FORM SUBMISSION ---
+            const leaveForm = document.getElementById('leave-application-form');
+            const submitBtn = document.getElementById('submit-btn');
+            const formMessage = document.getElementById('form-message');
+            const formMessageText = document.getElementById('form-message-text');
+
+            function showMessage(message, isSuccess = true) {
+                formMessage.className = `mt-4 p-3 rounded-lg ${isSuccess ? 'bg-green-500/20 border border-green-500/30' : 'bg-red-500/20 border border-red-500/30'}`;
+                formMessageText.className = `text-center font-medium ${isSuccess ? 'text-green-400' : 'text-red-400'}`;
+                formMessageText.textContent = message;
+                formMessage.classList.remove('hidden');
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    formMessage.classList.add('hidden');
+                }, 5000);
+            }
+
+            leaveForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const formData = new FormData();
+                formData.append('reason', document.getElementById('reason').value);
+                formData.append('start_date', document.getElementById('start-date').value);
+                formData.append('end_date', document.getElementById('end-date').value);
+                
+                // Add file attachments if any
+                const attachments = document.getElementById('attachments').files;
+                for (let i = 0; i < attachments.length; i++) {
+                    formData.append('attachments', attachments[i]);
+                }
+                
+                // Disable submit button during submission
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+                
+                try {
+                    const response = await fetch('/api/leave/submit', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok && result.success) {
+                        showMessage('Leave application submitted successfully! It will be reviewed by your teacher.', true);
+                        leaveForm.reset(); // Clear the form
+                    } else {
+                        showMessage(result.message || 'Failed to submit leave application. Please try again.', false);
+                    }
+                } catch (error) {
+                    console.error('Error submitting leave application:', error);
+                    showMessage('Network error. Please check your connection and try again.', false);
+                } finally {
+                    // Re-enable submit button
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Application';
+                }
+            });
+
+            // --- 3. INITIALIZE ---
             populateStudentInfo();
         });
     </script>
