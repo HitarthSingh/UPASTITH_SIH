@@ -12,7 +12,7 @@
     <script src="https://unpkg.com/lenis@1.1.2/dist/lenis.min.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     
     <link href="https://fonts.cdnfonts.com/css/quincy-cf" rel="stylesheet">
@@ -20,7 +20,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <style>
-        /* MODIFIED: Updated color palette */
         :root {
             --dark-blue: #0a0a14;
             --light-purple: #EAE6F8;
@@ -51,29 +50,14 @@
             to { transform: scale(1.1) rotate(15deg); opacity: 0.8; }
         }
 
-        /* MODIFIED: Updated solid card style */
         .solid-card {
             background: #23203B;
             border: 1px solid var(--accent-purple-2);
-            transition: all 0.3s ease-in-out;
         }
 
-        /* Floating animation for the login card */
         #login-card {
-            animation: floatAnimation 6s ease-in-out infinite;
             position: relative;
             overflow: hidden;
-        }
-        @keyframes floatAnimation {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        /* REMOVED: Scanner line animation styles */
-
-        /* Glow effect when form is focused */
-        #login-card.is-focused {
-            box-shadow: 0 0 35px rgba(108, 99, 145, 0.4), 0 0 15px rgba(234, 230, 248, 0.2);
         }
         
         #typing-title {
@@ -92,7 +76,6 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0; }
         }
-
 
         html.lenis {
             height: auto;
@@ -129,7 +112,6 @@
 <body class="relative overflow-x-hidden">
 
     <header class="sticky top-4 z-50 mx-auto max-w-6xl">
-        <!-- MODIFIED: Class changed from glass-card to solid-card -->
         <nav class="solid-card rounded-2xl px-4 py-1 mx-4 flex items-center justify-between">
             <a href="#" class="flex items-center flex-shrink-0 text-2xl font-bold">
                 <svg class="h-12 w-12 mr-2 text-light-purple" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -172,7 +154,6 @@
             <div class="w-full max-w-sm text-center z-20">
                 <h1 id="typing-title" class="text-6xl md:text-7xl font-bold mb-8 h-24"></h1>
                 
-                <!-- MODIFIED: Class changed from glass-card to solid-card -->
                 <div id="login-card" class="solid-card rounded-2xl shadow-xl shadow-black/10 p-8">
                     <div class="mb-8 text-center">
                         <h2 class="text-2xl font-bold text-white">Welcome Back!</h2>
@@ -225,18 +206,17 @@
             <div class="max-w-5xl mx-auto">
                 <h2 class="text-5xl font-bold text-center mb-12">Powerful Features</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                     <!-- MODIFIED: Class changed from glass-card to solid-card -->
-                    <div class="feature-card solid-card p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:bg-[rgba(80,80,129,0.35)]" style="transition-delay: 100ms;">
+                    <div class="feature-card solid-card p-8 rounded-2xl" style="transition-delay: 100ms;">
                         <i class="fas fa-camera text-5xl opacity-80 mb-4"></i>
                         <h3 class="text-2xl font-bold mb-2">Face-based</h3>
                         <p class="opacity-70">Register and mark attendance using face recognition.</p>
                     </div>
-                    <div class="feature-card solid-card p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:bg-[rgba(80,80,129,0.35)]" style="transition-delay: 200ms;">
+                    <div class="feature-card solid-card p-8 rounded-2xl" style="transition-delay: 200ms;">
                         <i class="fas fa-folder-open text-5xl opacity-80 mb-4"></i>
                         <h3 class="text-2xl font-bold mb-2">Exportable</h3>
                         <p class="opacity-70">Export logs to CSV or PDF for record keeping.</p>
                     </div>
-                    <div class="feature-card solid-card p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:bg-[rgba(80,80,129,0.35)]" style="transition-delay: 300ms;">
+                    <div class="feature-card solid-card p-8 rounded-2xl" style="transition-delay: 300ms;">
                         <i class="fas fa-lock text-5xl opacity-80 mb-4"></i>
                         <h3 class="text-2xl font-bold mb-2">Secure</h3>
                         <p class="opacity-70">Simple role-based access and local storage options.</p>
@@ -246,7 +226,6 @@
         </section>
     </main>
     
-    <!-- MODIFIED: Class changed from glass-card to solid-card -->
     <div id="message-box" class="hidden fixed top-24 right-5 solid-card p-4 rounded-lg shadow-lg z-50" role="alert"></div>
 
 
@@ -269,24 +248,20 @@
                 function type() {
                     const currentText = textToType.substring(0, charIndex);
                     titleElement.textContent = currentText;
-                    titleElement.style.minHeight = titleElement.scrollHeight + 'px'; // Prevent layout shift
+                    titleElement.style.minHeight = titleElement.scrollHeight + 'px';
 
                     if (!isDeleting && charIndex < textToType.length) {
-                        // Typing forward
                         charIndex++;
-                        setTimeout(type, 150); // Typing speed
+                        setTimeout(type, 150);
                     } else if (isDeleting && charIndex > 0) {
-                        // Deleting
                         charIndex--;
-                        setTimeout(type, 100); // Deleting speed
+                        setTimeout(type, 100);
                     } else if (!isDeleting && charIndex === textToType.length) {
-                        // Pause at the end, then start deleting
                         isDeleting = true;
-                        setTimeout(type, 2000); // Pause before deleting
+                        setTimeout(type, 2000);
                     } else if (isDeleting && charIndex === 0) {
-                        // Pause when empty, then start typing again
                         isDeleting = false;
-                        setTimeout(type, 500); // Pause before re-typing
+                        setTimeout(type, 500);
                     }
                 }
                 type();
@@ -313,7 +288,6 @@
                 renderer.setPixelRatio(window.devicePixelRatio);
                 container.appendChild(renderer.domElement);
                 
-                // Main particle system (starfield)
                 const particlesCount = 10000;
                 const positions = new Float32Array(particlesCount * 3);
                 for(let i = 0; i < particlesCount * 3; i++) {
@@ -331,7 +305,6 @@
                 particles = new THREE.Points(particlesGeometry, particlesMaterial);
                 scene.add(particles);
 
-                // Shooting stars particle system
                 const starsCount = 200;
                 const starPositions = new Float32Array(starsCount * 3);
                  for(let i = 0; i < starsCount * 3; i++) {
@@ -340,7 +313,7 @@
                 const starsGeometry = new THREE.BufferGeometry();
                 starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
                 const starsMaterial = new THREE.PointsMaterial({
-                    color: 0xD8CCF2, // Brighter color
+                    color: 0xD8CCF2,
                     size: 0.04,
                     blending: THREE.AdditiveBlending,
                     transparent: true,
@@ -365,14 +338,11 @@
                 requestAnimationFrame(animate);
                 const elapsedTime = clock.getElapsedTime();
 
-                // Animate main particles: combine constant rotation with mouse-based direction influence
                 particles.rotation.y = elapsedTime * 0.05 + (mouseX / windowHalfX) * 0.3;
                 particles.rotation.x = elapsedTime * 0.02 + (mouseY / windowHalfY) * 0.3;
 
-                // Animate shooting stars with a faster, different rotation
                 shootingStars.rotation.y = elapsedTime * 0.1 + (mouseX / windowHalfX) * 0.5;
                 shootingStars.rotation.x = elapsedTime * 0.04 + (mouseY / windowHalfY) * 0.5;
-
 
                 const positionAttribute = particles.geometry.attributes.position;
                 const count = positionAttribute.count;
@@ -380,7 +350,6 @@
                 for (let i = 0; i < count; i++) {
                     const y = positionAttribute.getY(i);
                     const x = positionAttribute.getX(i);
-                    // simple wave animation
                     positionAttribute.setY(i, y + Math.sin(elapsedTime + x * 0.5) * 0.001);
                 }
                 positionAttribute.needsUpdate = true;
@@ -395,20 +364,7 @@
             }
 
             initThree();
-
-            // --- LOGIN CARD GLOW ON FOCUS ---
-            const loginCard = document.getElementById('login-card');
-            const formInputs = document.querySelectorAll('#student-login-form input');
-
-            formInputs.forEach(input => {
-                input.addEventListener('focus', () => {
-                    loginCard.classList.add('is-focused');
-                });
-                input.addEventListener('blur', () => {
-                    loginCard.classList.remove('is-focused');
-                });
-            });
-
+            
             // --- SHOW/HIDE PASSWORD FUNCTIONALITY ---
             function togglePasswordVisibility() {
                 const passwordInput = document.getElementById('password');
@@ -440,18 +396,15 @@
             }
             requestAnimationFrame(raf);
             
-            // Link smooth scroll to anchor tags
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function (e) {
                     e.preventDefault();
                     lenis.scrollTo(this.getAttribute('href'));
-                    // Close mobile menu on link click
                     if(mobileMenu.classList.contains('open')){
                         mobileMenu.classList.remove('open');
                     }
                 });
             });
-
 
             // --- SCROLL ANIMATION (INTERSECTION OBSERVER) ---
             const featureCards = document.querySelectorAll('.feature-card');
@@ -474,7 +427,6 @@
                 observer.observe(card);
             });
             
-            // --- EXISTING LOGIC ---
             // Mobile menu logic
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const closeMenuButton = document.getElementById('close-menu-button');
@@ -483,7 +435,6 @@
             mobileMenuButton.addEventListener('click', () => mobileMenu.classList.add('open'));
             closeMenuButton.addEventListener('click', () => mobileMenu.classList.remove('open'));
             
-
             // Footer year
             document.getElementById('current-year').textContent = new Date().getFullYear();
 
@@ -506,18 +457,13 @@
                 submitButton.classList.add('opacity-50', 'cursor-not-allowed');
 
                 try {
-                    // MOCK API CALL - Replace with your actual fetch
                     await new Promise(resolve => setTimeout(resolve, 1500)); 
-                    // const response = await fetch('/api/login', { ... });
-                    // const result = await response.json();
-                    
-                    // MOCK RESPONSE
                     const result = { success: true, message: 'Login successful! Redirecting...' }; 
                     
                     if (result.success) {
                         showMessage(result.message, 'success');
                         setTimeout(() => {
-                            // window.location.href = result.redirect_url || '/studentdashboard';
+                            // window.location.href = '/studentdashboard';
                         }, 1500);
                     } else {
                         showMessage(result.message || 'Invalid credentials.', 'error');
@@ -561,4 +507,3 @@
     </script>
 </body>
 </html>
-
