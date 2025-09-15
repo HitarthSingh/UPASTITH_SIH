@@ -178,13 +178,17 @@
 
                         <div class="relative">
                             <input type="password" id="password" name="password"
-                                class="block px-2.5 pb-2.5 pt-4 w-full text-sm text-white bg-black/20 rounded-lg border-1 border-white/20 appearance-none focus:outline-none focus:ring-0 focus:border-[var(--light-purple)] peer"
+                                class="block px-2.5 pb-2.5 pt-4 pr-12 w-full text-sm text-white bg-black/20 rounded-lg border-1 border-white/20 appearance-none focus:outline-none focus:ring-0 focus:border-[var(--light-purple)] peer"
                                 placeholder=" " required />
                             <label for="password"
                                 class="absolute text-sm text-white/70 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-focus:text-[var(--light-purple)] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1">
                                 <i class="fas fa-key mr-1"></i>
                                 Password
                             </label>
+                            <button type="button" id="togglePassword" 
+                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-300 hover:text-purple-400 transition-colors focus:outline-none z-20 cursor-pointer p-1">
+                                <i class="fas fa-eye text-lg" id="eyeIcon"></i>
+                            </button>
                         </div>
 
                         <div class="text-right -mt-4">
@@ -235,6 +239,32 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- SHOW/HIDE PASSWORD FUNCTIONALITY ---
+            function togglePasswordVisibility() {
+                const passwordInput = document.getElementById('password');
+                const eyeIcon = document.getElementById('eyeIcon');
+                
+                if (passwordInput && eyeIcon) {
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        eyeIcon.classList.remove('fa-eye');
+                        eyeIcon.classList.add('fa-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        eyeIcon.classList.remove('fa-eye-slash');
+                        eyeIcon.classList.add('fa-eye');
+                    }
+                }
+            }
+            
+            const toggleButton = document.getElementById('togglePassword');
+            if (toggleButton) {
+                toggleButton.addEventListener('click', togglePasswordVisibility);
+                console.log('Password toggle button initialized');
+            } else {
+                console.error('Toggle button not found');
+            }
+            
             // --- LENIS SMOOTH SCROLL SETUP ---
             const lenis = new Lenis();
             function raf(time) {

@@ -13,10 +13,124 @@ import json
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-in-production'
-CORS(app)
+
+# Configure Flask session settings for proper session management
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
+
+CORS(app, supports_credentials=True)
 
 # Initialize face recognition system
 face_system = FaceRecognitionSystem()
+
+# Session validation middleware
+def require_login(user_type=None):
+    """Decorator to require login for routes"""
+    def decorator(f):
+        def decorated_function(*args, **kwargs):
+            if 'user_id' not in session:
+                return jsonify({'success': False, 'message': 'Please log in first'}), 401
+            
+            # Check if user type matches if specified
+            if user_type and session.get('user_type') != user_type:
+                return jsonify({'success': False, 'message': f'{user_type.title()} access required'}), 403
+            
+            # Check if session has expired by checking database
+            try:
+                conn = sqlite3.connect('authentication.db')
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT expires_at FROM sessions 
+                    WHERE user_id = ? AND expires_at > datetime('now')
+                ''', (session['user_id'],))
+                valid_session = cursor.fetchone()
+                conn.close()
+                
+                if not valid_session:
+                    # Session expired or doesn't exist, clear it
+                    session.clear()
+                    return jsonify({'success': False, 'message': 'Session expired, please log in again'}), 401
+                    
+            except Exception as e:
+                print(f"Error validating session: {e}")
+                # If there's an error checking session, require re-login
+                session.clear()
+                return jsonify({'success': False, 'message': 'Session validation failed, please log in again'}), 401
+            
+            return f(*args, **kwargs)
+        decorated_function.__name__ = f.__name__
+        return decorated_function
+    return decorator
+
+# Middleware to check session validity on every request
+@app.before_request
+def validate_session():
+    """Validate session on protected routes"""
+    protected_routes = [
+        '/studentdashboard', '/teacherdashboard', '/api/student/', '/api/teacher/', 
+        '/api/mark_attendance_face', '/api/leave/submit'
+    ]
+    
+    # Skip validation for static files, login routes, public API endpoints, and landing page with any parameters
+    if (request.endpoint in ['static', 'landing_page', 'teacherlogin', 'student_login_form', 'teacher_login_form'] or 
+        request.path.startswith('/api/login') or 
+        request.path.startswith('/api/logout') or
+        request.path.startswith('/api/test') or
+        request.path.startswith('/api/registerfinal1') or
+        request.path.startswith('/api/recognizefinal1') or
+        request.path == '/' or
+        request.path.startswith('/?') or  # Skip landing page with any query parameters
+        request.path.startswith('/login/') or  # Skip form-based login routes
+        request.path.startswith('/forgetpassword') or
+        request.path.startswith('/aboutus') or
+        request.path.startswith('/suggestionbox') or
+        request.path.endswith('.css') or
+        request.path.endswith('.js') or
+        request.path.endswith('.png') or
+        request.path.endswith('.jpg') or
+        request.path.endswith('.ico') or
+        request.path.endswith('.html')):
+        return
+    
+    # Check if this is a protected route
+    for route in protected_routes:
+        if request.path.startswith(route):
+            if 'user_id' not in session:
+                if request.path.startswith('/api/'):
+                    return jsonify({'success': False, 'message': 'Please log in first'}), 401
+                else:
+                    return redirect('/?error=login_required')
+            
+            # Validate session in database
+            try:
+                conn = sqlite3.connect('authentication.db')
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT expires_at FROM sessions 
+                    WHERE user_id = ? AND expires_at > datetime('now')
+                ''', (session['user_id'],))
+                valid_session = cursor.fetchone()
+                conn.close()
+                
+                if not valid_session:
+                    session.clear()
+                    if request.path.startswith('/api/'):
+                        return jsonify({'success': False, 'message': 'Session expired, please log in again'}), 401
+                    else:
+                        return redirect('/?error=session_expired')
+                        
+            except Exception as e:
+                print(f"Error validating session in middleware: {e}")
+                session.clear()
+                if request.path.startswith('/api/'):
+                    return jsonify({'success': False, 'message': 'Session validation failed'}), 401
+                else:
+                    return redirect('/?error=session_error')
+            break
 
 @app.route("/")
 def landing_page():
@@ -424,86 +538,23 @@ def init_classes_db(db_path: str = 'classes.db') -> None:
             pass
 
 def create_sample_classes():
-    """Create sample classes and student enrollments"""
+    """Initialize empty classes database - no hardcoded classes"""
     try:
         conn = sqlite3.connect('classes.db')
         cursor = conn.cursor()
         
-        # Clear existing data
+        # Clear existing data to start fresh
         cursor.execute('DELETE FROM student_enrollments')
         cursor.execute('DELETE FROM classes')
         
-        # Get current day for testing
-        from datetime import datetime
-        current_day = datetime.now().strftime('%A')
-        print(f"Creating classes for current day: {current_day}")
-        
-        # Insert sample classes for all days of the week
-        sample_classes = [
-            ('Data Structures', 'Prof. Eleanor', '09:00', '10:00', 'Monday', 'CS-101'),
-            ('Operating Systems', 'Prof. Eleanor', '10:15', '11:15', 'Monday', 'CS-102'),
-            ('Computer Networks', 'Dr. Smith', '11:30', '12:30', 'Monday', 'CS-103'),
-            
-            ('Database Systems', 'Prof. Eleanor', '09:00', '10:00', 'Tuesday', 'CS-201'),
-            ('Software Engineering', 'Dr. Smith', '10:15', '11:15', 'Tuesday', 'CS-202'),
-            ('Web Development', 'Prof. Eleanor', '11:30', '12:30', 'Tuesday', 'CS-203'),
-            
-            ('Machine Learning', 'Dr. Smith', '09:00', '10:00', 'Wednesday', 'CS-301'),
-            ('Artificial Intelligence', 'Prof. Eleanor', '10:15', '11:15', 'Wednesday', 'CS-302'),
-            ('Cloud Computing', 'Dr. Smith', '11:30', '12:30', 'Wednesday', 'CS-303'),
-            
-            ('Mobile Development', 'Prof. Eleanor', '09:00', '10:00', 'Thursday', 'CS-401'),
-            ('Cybersecurity', 'Dr. Smith', '10:15', '11:15', 'Thursday', 'CS-402'),
-            ('DevOps', 'Prof. Eleanor', '11:30', '12:30', 'Thursday', 'CS-403'),
-            
-            ('Project Management', 'Dr. Smith', '09:00', '10:00', 'Friday', 'CS-501'),
-            ('System Design', 'Prof. Eleanor', '10:15', '11:15', 'Friday', 'CS-502'),
-            ('Research Methods', 'Dr. Smith', '11:30', '12:30', 'Friday', 'CS-503'),
-            
-            ('Data Structures Lab', 'Prof. Eleanor', '09:00', '11:00', 'Saturday', 'CS-Lab1'),
-            ('Operating Systems Lab', 'Dr. Smith', '11:15', '13:15', 'Saturday', 'CS-Lab2'),
-            ('Project Work', 'Prof. Eleanor', '14:00', '16:00', 'Saturday', 'CS-Lab3'),
-            
-            # Add classes for Sunday as well
-            ('Special Workshop', 'Prof. Eleanor', '10:00', '12:00', 'Sunday', 'CS-Workshop'),
-            ('Research Seminar', 'Dr. Smith', '14:00', '16:00', 'Sunday', 'CS-Seminar'),
-        ]
-        
-        for class_data in sample_classes:
-            # Map teacher names to teacher IDs
-            teacher_id = 'TCH001' if class_data[1] == 'Prof. Eleanor' else 'TCH002'
-            cursor.execute('''
-                INSERT INTO classes (subject_name, teacher_name, start_time, end_time, day_of_week, room_number, teacher_id, is_active)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-            ''', class_data + (teacher_id,))
-        
-        # Get all class IDs
-        cursor.execute('SELECT id FROM classes')
-        class_ids = [row[0] for row in cursor.fetchall()]
-        
-        # Enroll all students in all classes
-        student_ids = ['STU001', 'STU002', 'STU003']
-        for student_id in student_ids:
-            for class_id in class_ids:
-                cursor.execute('''
-                    INSERT INTO student_enrollments (student_id, class_id, enrollment_date, is_active)
-                    VALUES (?, ?, date('now'), 1)
-                ''', (student_id, class_id))
-        
         conn.commit()
-        
-        # Verify data was inserted
-        cursor.execute('SELECT COUNT(*) FROM classes')
-        class_count = cursor.fetchone()[0]
-        cursor.execute('SELECT COUNT(*) FROM student_enrollments')
-        enrollment_count = cursor.fetchone()[0]
-        
         conn.close()
-        print(f"Sample classes and enrollments created successfully")
-        print(f"Total classes: {class_count}, Total enrollments: {enrollment_count}")
+        
+        print("✅ Classes database initialized - no hardcoded classes")
+        print("📝 Teachers can now add classes through the dashboard")
         
     except Exception as e:
-        print(f"Error creating sample classes: {e}")
+        print(f"Error initializing classes database: {e}")
 
 def create_sample_leave_requests():
     """Create sample leave requests for testing"""
@@ -729,17 +780,80 @@ def login():
 
 @app.route('/api/logout', methods=['POST'])
 def logout():
-    """Handle logout"""
-    if 'user_id' in session:
-        # Remove session from database
-        conn = sqlite3.connect('authentication.db')
-        cursor = conn.cursor()
-        cursor.execute('DELETE FROM sessions WHERE user_id = ?', (session['user_id'],))
-        conn.commit()
-        conn.close()
-    
-    session.clear()
-    return jsonify({'success': True, 'message': 'Logged out successfully'})
+    """Handle logout - properly clear all session data"""
+    try:
+        user_id = session.get('user_id')
+        username = session.get('username')
+        user_type = session.get('user_type')
+        
+        print(f"🔐 Logout initiated for user: {username} (ID: {user_id}, Type: {user_type})")
+        
+        if user_id:
+            # Remove ALL session tokens from database for this user
+            conn = sqlite3.connect('authentication.db')
+            cursor = conn.cursor()
+            
+            # First, check how many sessions exist
+            cursor.execute('SELECT COUNT(*) FROM sessions WHERE user_id = ?', (user_id,))
+            session_count = cursor.fetchone()[0]
+            
+            # Delete all sessions for this user
+            cursor.execute('DELETE FROM sessions WHERE user_id = ?', (user_id,))
+            deleted_sessions = cursor.rowcount
+            
+            conn.commit()
+            conn.close()
+            
+            print(f"✅ Removed {deleted_sessions}/{session_count} database sessions for user_id: {user_id}")
+        else:
+            print("⚠️ No user_id found in session during logout")
+        
+        # Store session info before clearing for logging
+        session_info = dict(session)
+        
+        # Clear the Flask session completely
+        session.clear()
+        
+        # Create response with comprehensive session termination
+        response = jsonify({
+            'success': True, 
+            'message': 'Session terminated successfully',
+            'session_cleared': True,
+            'user_logged_out': username or 'Unknown',
+            'timestamp': datetime.now().isoformat()
+        })
+        
+        # Explicitly expire ALL possible session cookies
+        response.set_cookie('session', '', expires=0, httponly=True, samesite='Lax', path='/')
+        response.set_cookie('flask-session', '', expires=0, httponly=True, samesite='Lax', path='/')
+        
+        # Add cache control headers to prevent caching
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        
+        print(f"✅ Session cleared and logout completed successfully for {username}")
+        return response
+        
+    except Exception as e:
+        print(f"❌ Error during logout: {e}")
+        # Even if there's an error, clear the session
+        session.clear()
+        response = jsonify({
+            'success': True, 
+            'message': 'Session terminated with warnings',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        })
+        
+        # Still expire cookies even on error
+        response.set_cookie('session', '', expires=0, httponly=True, samesite='Lax', path='/')
+        response.set_cookie('flask-session', '', expires=0, httponly=True, samesite='Lax', path='/')
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        
+        return response
 
 @app.route('/login/student', methods=['POST'])
 def student_login_form():
@@ -767,6 +881,19 @@ def student_login_form():
         session['username'] = user[1]
         session['user_type'] = user[3]
         session['full_name'] = user[4]
+        
+        # Generate session token for database
+        session_token = secrets.token_urlsafe(32)
+        expires_at = datetime.now() + timedelta(hours=24)
+        
+        conn = sqlite3.connect('authentication.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO sessions (user_id, session_token, expires_at)
+            VALUES (?, ?, ?)
+        ''', (user[0], session_token, expires_at))
+        conn.commit()
+        conn.close()
         
         return redirect('/studentdashboard')
     else:
@@ -808,6 +935,19 @@ def teacher_login_form():
         session['username'] = user[1]
         session['user_type'] = user[3]
         session['full_name'] = user[4]
+        
+        # Generate session token for database
+        session_token = secrets.token_urlsafe(32)
+        expires_at = datetime.now() + timedelta(hours=24)
+        
+        conn = sqlite3.connect('authentication.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO sessions (user_id, session_token, expires_at)
+            VALUES (?, ?, ?)
+        ''', (user[0], session_token, expires_at))
+        conn.commit()
+        conn.close()
         
         print(f"Login successful, redirecting to /teacherdashboard")
         return redirect('/teacherdashboard')
@@ -1007,6 +1147,42 @@ def get_current_teacher():
     except Exception as e:
         return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
 
+@app.route('/api/student/me', methods=['GET'])
+def get_current_student():
+    """Get current logged-in student information"""
+    try:
+        if 'user_id' not in session or session.get('user_type') != 'student':
+            return jsonify({'success': False, 'message': 'Please log in as a student first'}), 401
+        
+        conn = sqlite3.connect('authentication.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT id, username, full_name, email, student_id
+            FROM users 
+            WHERE id = ? AND user_type = 'student'
+        ''', (session['user_id'],))
+        
+        student = cursor.fetchone()
+        conn.close()
+        
+        if not student:
+            return jsonify({'success': False, 'message': 'Student not found'}), 404
+        
+        return jsonify({
+            'success': True,
+            'student': {
+                'id': student[0],
+                'username': student[1],
+                'name': student[2] or student[1],
+                'email': student[3],
+                'student_id': student[4]
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
+
 # Attendance API Endpoints
 @app.route('/api/attendance/today', methods=['GET'])
 def get_today_attendance():
@@ -1171,16 +1347,7 @@ def mark_attendance_face():
                 'message': f'Face recognition confidence too low ({confidence:.2%}). Please try again with better lighting.'
             })
         
-        # Mark attendance in the system
-        attendance_result = face_system.mark_attendance(recognized_name)
-        
-        if not attendance_result['success']:
-            return jsonify({
-                'success': False,
-                'message': attendance_result['message']
-            })
-        
-        # Also record in class-specific attendance if needed
+        # Mark attendance directly in class_attendance table with all required fields
         try:
             conn = sqlite3.connect('attendance.db')
             cursor = conn.cursor()
@@ -1197,10 +1364,26 @@ def mark_attendance_face():
                 )
             ''')
             
-            # Insert class-specific attendance record
+            # Check if attendance already marked for this subject today
+            today = datetime.now().strftime('%Y-%m-%d')
             cursor.execute('''
-                INSERT INTO class_attendance (student_name, student_id, subject, recognition_confidence)
-                VALUES (?, ?, ?, ?)
+                SELECT COUNT(*) FROM class_attendance
+                WHERE (student_id = ? OR student_name = ?) AND subject = ? AND DATE(timestamp) = ?
+            ''', (student_id, recognized_name, subject, today))
+            
+            count = cursor.fetchone()[0]
+            
+            if count > 0:
+                conn.close()
+                return jsonify({
+                    'success': False,
+                    'message': f'Attendance already marked for {recognized_name} in {subject} today'
+                })
+            
+            # Insert attendance record with all fields
+            cursor.execute('''
+                INSERT INTO class_attendance (student_name, student_id, subject, recognition_confidence, timestamp)
+                VALUES (?, ?, ?, ?, datetime('now'))
             ''', (recognized_name, student_id, subject, confidence))
             
             conn.commit()
@@ -1208,7 +1391,7 @@ def mark_attendance_face():
             
         except Exception as e:
             print(f"Error recording class attendance: {e}")
-            # Don't fail the main operation if class attendance fails
+            return jsonify({'success': False, 'message': f'Error recording attendance: {str(e)}'}), 500
         
         return jsonify({
             'success': True,
@@ -1226,7 +1409,7 @@ def mark_attendance_face():
 # Classes API Endpoints
 @app.route('/api/student/classes/today', methods=['GET'])
 def get_student_classes_today():
-    """Get today's classes for the logged-in student"""
+    """Get all active classes for the logged-in student (removed day restriction)"""
     try:
         if 'user_id' not in session:
             return jsonify({'success': False, 'message': 'Please log in first'}), 401
@@ -1243,49 +1426,25 @@ def get_student_classes_today():
         
         student_id = user[0]
         
-        # Get current day of week
+        # Get current day of week for display purposes
         from datetime import datetime
         current_day = datetime.now().strftime('%A')
+        print(f"DEBUG: Looking for all classes for student {student_id}")
         
-        # Get enrolled classes for today
+        # Get ALL enrolled classes (removed day restriction)
         conn = sqlite3.connect('classes.db')
         cursor = conn.cursor()
         
         cursor.execute('''
-            SELECT c.id, c.subject_name, c.teacher_name, c.start_time, c.end_time, c.room_number
+            SELECT c.id, c.subject_name, c.teacher_name, c.start_time, c.end_time, c.room_number, c.day_of_week
             FROM classes c
             JOIN student_enrollments se ON c.id = se.class_id
-            WHERE se.student_id = ? AND c.day_of_week = ? AND c.is_active = 1 AND se.is_active = 1
-            ORDER BY c.start_time
-        ''', (student_id, current_day))
+            WHERE se.student_id = ? AND c.is_active = 1 AND se.is_active = 1
+            ORDER BY c.day_of_week, c.start_time
+        ''', (student_id,))
         
         classes = cursor.fetchall()
-        
-        # Debug: Check if no classes found, try to get any classes for this student
-        if not classes:
-            print(f"No classes found for {student_id} on {current_day}")
-            cursor.execute('''
-                SELECT c.day_of_week, COUNT(*) 
-                FROM classes c
-                JOIN student_enrollments se ON c.id = se.class_id
-                WHERE se.student_id = ? AND c.is_active = 1 AND se.is_active = 1
-                GROUP BY c.day_of_week
-            ''', (student_id,))
-            debug_classes = cursor.fetchall()
-            print(f"Classes by day for student {student_id}: {debug_classes}")
-            
-            # If it's weekend, show Saturday classes as fallback
-            if current_day in ['Saturday', 'Sunday']:
-                cursor.execute('''
-                    SELECT c.id, c.subject_name, c.teacher_name, c.start_time, c.end_time, c.room_number
-                    FROM classes c
-                    JOIN student_enrollments se ON c.id = se.class_id
-                    WHERE se.student_id = ? AND c.day_of_week = 'Saturday' AND c.is_active = 1 AND se.is_active = 1
-                    ORDER BY c.start_time
-                ''', (student_id,))
-                classes = cursor.fetchall()
-                if classes:
-                    current_day = 'Saturday'
+        print(f"DEBUG: Found {len(classes)} total classes for student {student_id}")
         
         conn.close()
         
@@ -1300,6 +1459,7 @@ def get_student_classes_today():
                 'subject': cls[1],  # subject_name
                 'teacher': cls[2],  # teacher_name
                 'room': cls[5],  # room_number
+                'day': cls[6],  # day_of_week
                 'color': color_options[i % len(color_options)]
             })
         
@@ -1307,7 +1467,7 @@ def get_student_classes_today():
             'success': True,
             'day': current_day,
             'classes': formatted_classes,
-            'debug_info': f"Found {len(formatted_classes)} classes for {current_day}"
+            'debug_info': f"Found {len(formatted_classes)} total classes (all days)"
         })
         
     except Exception as e:
@@ -1341,10 +1501,10 @@ def get_student_attendance_summary():
         # Get total classes and attended classes per subject
         cursor.execute('''
             SELECT subject, COUNT(*) as total_classes,
-                   SUM(CASE WHEN student_id = ? THEN 1 ELSE 0 END) as attended_classes
+                   SUM(CASE WHEN (student_id = ? OR student_name = ?) THEN 1 ELSE 0 END) as attended_classes
             FROM class_attendance
             GROUP BY subject
-        ''', (student_id,))
+        ''', (student_id, student_name))
         
         attendance_data = cursor.fetchall()
         conn.close()
@@ -1390,6 +1550,249 @@ def get_student_attendance_summary():
         print(f"Error in get_student_attendance_summary: {e}")
         return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
 
+@app.route('/api/student/attendance/status', methods=['GET'])
+def get_attendance_status():
+    """Check if attendance has been marked for specific subjects today"""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'message': 'Please log in first'}), 401
+        
+        # Get student ID from session
+        conn = sqlite3.connect('authentication.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT student_id, full_name FROM users WHERE id = ?', (session['user_id'],))
+        user = cursor.fetchone()
+        conn.close()
+        
+        if not user or not user[0]:
+            return jsonify({'success': False, 'message': 'Student ID not found'}), 404
+        
+        student_id = user[0]
+        student_name = user[1]
+        
+        # Get today's date
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        # Check attendance status for each subject today
+        conn = sqlite3.connect('attendance.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT subject, COUNT(*) as marked_today
+            FROM class_attendance
+            WHERE (student_id = ? OR student_name = ?) AND DATE(timestamp) = ?
+            GROUP BY subject
+        ''', (student_id, student_name, today))
+        
+        attendance_status = cursor.fetchall()
+        print(f"DEBUG: Found attendance records: {attendance_status}")
+        print(f"DEBUG: Looking for student_id={student_id}, student_name={student_name}, date={today}")
+        
+        # Also check what's actually in the database
+        cursor.execute('''
+            SELECT student_id, student_name, subject, timestamp
+            FROM class_attendance
+            WHERE DATE(timestamp) = ?
+            ORDER BY timestamp DESC
+        ''', (today,))
+        
+        all_records = cursor.fetchall()
+        print(f"DEBUG: All records for today: {all_records}")
+        
+        conn.close()
+        
+        # Create a dictionary of subject -> attendance status
+        status_dict = {}
+        for subject, marked_count in attendance_status:
+            status_dict[subject] = marked_count > 0
+        
+        print(f"DEBUG: Final status_dict: {status_dict}")
+        
+        # Also get all subjects from today's classes to ensure we check all of them
+        conn = sqlite3.connect('classes.db')
+        cursor = conn.cursor()
+        
+        # Get today's classes for this student
+        cursor.execute('''
+            SELECT DISTINCT c.subject_name
+            FROM classes c
+            JOIN student_enrollments se ON c.id = se.class_id
+            WHERE se.student_id = ? AND c.is_active = 1 AND se.is_active = 1
+        ''', (student_id,))
+        
+        enrolled_subjects = cursor.fetchall()
+        conn.close()
+        
+        print(f"DEBUG: Enrolled subjects: {enrolled_subjects}")
+        
+        # Ensure all enrolled subjects are in status_dict
+        for subject_tuple in enrolled_subjects:
+            subject = subject_tuple[0]
+            if subject not in status_dict:
+                status_dict[subject] = False
+                print(f"DEBUG: Added missing subject {subject} with status False")
+        
+        print(f"DEBUG: Final status_dict after adding missing subjects: {status_dict}")
+        
+        return jsonify({
+            'success': True,
+            'attendance_status': status_dict,
+            'date': today
+        })
+        
+    except Exception as e:
+        print(f"Error in get_attendance_status: {e}")
+        return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
+
+@app.route('/api/student/attendance/remove', methods=['POST'])
+def remove_attendance():
+    """Remove attendance for a specific subject today"""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'message': 'Please log in first'}), 401
+        
+        data = request.get_json()
+        if not data or 'subject' not in data:
+            return jsonify({'success': False, 'message': 'Subject is required'}), 400
+        
+        subject = data['subject']
+        
+        # Get student ID from session
+        conn = sqlite3.connect('authentication.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT student_id, full_name FROM users WHERE id = ?', (session['user_id'],))
+        user = cursor.fetchone()
+        conn.close()
+        
+        if not user or not user[0]:
+            return jsonify({'success': False, 'message': 'Student ID not found'}), 404
+        
+        student_id = user[0]
+        student_name = user[1]
+        
+        # Get today's date
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        # Remove attendance record
+        conn = sqlite3.connect('attendance.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            DELETE FROM class_attendance
+            WHERE (student_id = ? OR student_name = ?) AND subject = ? AND DATE(timestamp) = ?
+        ''', (student_id, student_name, subject, today))
+        
+        deleted_count = cursor.rowcount
+        conn.commit()
+        conn.close()
+        
+        if deleted_count > 0:
+            return jsonify({
+                'success': True,
+                'message': f'Attendance removed for {subject}',
+                'subject': subject
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': f'No attendance found for {subject} today'
+            })
+        
+    except Exception as e:
+        print(f"Error in remove_attendance: {e}")
+        return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
+
+@app.route('/api/teacher/classes/remove', methods=['POST'])
+def remove_class():
+    """Remove a class (teacher only)"""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'message': 'Please log in first'}), 401
+        
+        data = request.get_json()
+        if not data or 'class_id' not in data:
+            return jsonify({'success': False, 'message': 'Class ID is required'}), 400
+        
+        class_id = data['class_id']
+        
+        # Remove class from database
+        conn = sqlite3.connect('classes.db')
+        cursor = conn.cursor()
+        
+        # First check if class exists and belongs to this teacher
+        cursor.execute('''
+            SELECT id, teacher_id FROM classes WHERE id = ?
+        ''', (class_id,))
+        
+        class_info = cursor.fetchone()
+        if not class_info:
+            conn.close()
+            return jsonify({'success': False, 'message': 'Class not found'}), 404
+        
+        # Get teacher ID from session
+        conn_auth = sqlite3.connect('authentication.db')
+        cursor_auth = conn_auth.cursor()
+        cursor_auth.execute('SELECT teacher_id FROM users WHERE id = ?', (session['user_id'],))
+        teacher = cursor_auth.fetchone()
+        conn_auth.close()
+        
+        print(f"DEBUG: Remove class - session user_id: {session['user_id']}")
+        print(f"DEBUG: Remove class - teacher from session: {teacher}")
+        print(f"DEBUG: Remove class - class_info: {class_info}")
+        print(f"DEBUG: Remove class - comparing {teacher[0] if teacher else 'None'} with {class_info[1]}")
+        
+        if not teacher or teacher[0] != class_info[1]:
+            conn.close()
+            return jsonify({'success': False, 'message': f'You can only remove your own classes. Your ID: {teacher[0] if teacher else "None"}, Class owner: {class_info[1]}'}), 403
+        
+        # Remove class (this will also remove enrollments due to foreign key constraints)
+        cursor.execute('DELETE FROM classes WHERE id = ?', (class_id,))
+        
+        deleted_count = cursor.rowcount
+        conn.commit()
+        conn.close()
+        
+        if deleted_count > 0:
+            return jsonify({
+                'success': True,
+                'message': 'Class removed successfully',
+                'class_id': class_id
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Class not found or already removed'
+            })
+        
+    except Exception as e:
+        print(f"Error in remove_class: {e}")
+        return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
+
+@app.route('/api/clear-attendance', methods=['POST'])
+def clear_attendance_data():
+    """Clear all attendance data for testing purposes"""
+    try:
+        conn = sqlite3.connect('attendance.db')
+        cursor = conn.cursor()
+        
+        # Clear all attendance records
+        cursor.execute('DELETE FROM class_attendance')
+        cursor.execute('DELETE FROM attendance')
+        
+        deleted_class = cursor.rowcount
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Cleared all attendance data. Deleted {deleted_class} records.',
+            'deleted_records': deleted_class
+        })
+        
+    except Exception as e:
+        print(f"Error clearing attendance: {e}")
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
+
 @app.route('/api/teacher/classes/add', methods=['POST'])
 def add_class():
     """Add a new class (teacher only)"""
@@ -1424,19 +1827,55 @@ def add_class():
         conn = sqlite3.connect('classes.db')
         cursor = conn.cursor()
         
+        # Get teacher info from session
+        conn_auth = sqlite3.connect('authentication.db')
+        cursor_auth = conn_auth.cursor()
+        cursor_auth.execute('SELECT teacher_id, full_name FROM users WHERE id = ?', (session['user_id'],))
+        teacher = cursor_auth.fetchone()
+        conn_auth.close()
+        
+        teacher_id = teacher[0] if teacher and teacher[0] else 'TCH001'
+        teacher_name = teacher[1] if teacher and teacher[1] else 'Prof. Eleanor'
+        
+        print(f"DEBUG: Add class - session user_id: {session['user_id']}")
+        print(f"DEBUG: Add class - teacher from session: {teacher}")
+        print(f"DEBUG: Add class - using teacher_id: {teacher_id}")
+        
         cursor.execute('''
-            INSERT INTO classes (subject_name, teacher_name, start_time, end_time, day_of_week, room_number, is_active)
-            VALUES (?, ?, ?, ?, ?, ?, 1)
-        ''', (subject, 'Prof. Eleanor', start_time, end_time, day_of_week, room))
+            INSERT INTO classes (subject_name, teacher_id, teacher_name, start_time, end_time, day_of_week, room_number, is_active)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+        ''', (subject, teacher_id, teacher_name, start_time, end_time, day_of_week, room))
         
         class_id = cursor.lastrowid
+        
+        # Automatically enroll all students in the new class
+        student_ids = ['STU001', 'STU002', 'STU003']  # Get all student IDs
+        print(f"DEBUG: Enrolling students {student_ids} in class {class_id}")
+        
+        for student_id in student_ids:
+            try:
+                cursor.execute('''
+                    INSERT INTO student_enrollments (student_id, class_id, enrollment_date, is_active)
+                    VALUES (?, ?, date('now'), 1)
+                ''', (student_id, class_id))
+                print(f"DEBUG: Enrolled student {student_id} in class {class_id}")
+            except sqlite3.IntegrityError:
+                print(f"DEBUG: Student {student_id} already enrolled in class {class_id}")
+                # Update existing enrollment to active
+                cursor.execute('''
+                    UPDATE student_enrollments 
+                    SET is_active = 1 
+                    WHERE student_id = ? AND class_id = ?
+                ''', (student_id, class_id))
+        
         conn.commit()
         conn.close()
         
         return jsonify({
             'success': True,
-            'message': 'Class added successfully',
-            'class_id': class_id
+            'message': 'Class added successfully and all students enrolled',
+            'class_id': class_id,
+            'enrolled_students': student_ids
         })
         
     except Exception as e:

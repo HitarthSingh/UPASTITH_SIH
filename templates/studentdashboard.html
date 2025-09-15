@@ -160,6 +160,7 @@
                     <li><a href="leaveapplication.html" class="nav-link flex items-center rounded-lg p-3 text-white/70 transition-colors hover:bg-white/10"><svg class="h-5 w-5 mr-3 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="nav-text whitespace-nowrap">Leave Application</span></a></li>
                     <li><a href="studentresult.html" class="nav-link flex items-center rounded-lg p-3 text-white/70 transition-colors hover:bg-white/10"><svg class="h-5 w-5 mr-3 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg><span class="nav-text whitespace-nowrap">Student Result</span></a></li>
                     <li><a href="suggestionbox.html" class="nav-link flex items-center rounded-lg p-3 text-white/70 transition-colors hover:bg-white/10"><svg class="h-5 w-5 mr-3 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20.25h4.5m-15-2.25h15M12 16.5h4.5M3 13.5h18M12 9.75h4.5M3 6.75h18"></path></svg><span class="nav-text whitespace-nowrap">Suggestion Box</span></a></li>
+                    <li><a href="#" onclick="handleLogout()" class="nav-link flex items-center rounded-lg p-3 text-white/70 transition-colors hover:bg-white/10 hover:text-red-300"><svg class="h-5 w-5 mr-3 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg><span class="nav-text whitespace-nowrap">Logout</span></a></li>
                 </ul>
             </nav>
         </aside>
@@ -196,27 +197,60 @@
                         </div>
                     </div>
                     <!-- Dashboard Content Grid -->
-                    <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-6 lg:gap-8 lg:grid-cols-3">
                         <!-- Left Column -->
-                        <div class="space-y-8 lg:col-span-2 order-2 lg:order-1">
+                        <div class="space-y-6 lg:col-span-2 order-2 lg:order-1">
                             <div class="glass-card rounded-3xl p-6 shadow-xl md:p-8">
-                                <h2 class="mb-6 text-2xl font-semibold text-white">Today's Classes</h2>
+                                <div class="flex items-center gap-3 mb-6">
+                                    <div class="w-10 h-10 bg-[var(--accent-purple-1)] rounded-lg flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-[var(--dark-blue)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    </div>
+                                    <h2 class="text-2xl font-semibold text-white">Today's Classes</h2>
+                                </div>
                                 <div id="timetable-container" class="flex flex-col gap-4"></div>
                             </div>
                             <div class="glass-card rounded-3xl p-6 shadow-xl md:p-8">
-                                <h2 class="mb-6 text-2xl font-semibold text-white">Upcoming Events</h2>
+                                <div class="flex items-center gap-3 mb-6">
+                                    <div class="w-10 h-10 bg-[var(--accent-purple-1)] rounded-lg flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-[var(--dark-blue)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h.01M17 11h.01M16 21H8a2 2 0 01-2-2V7a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path></svg>
+                                    </div>
+                                    <h2 class="text-2xl font-semibold text-white">Upcoming Events</h2>
+                                </div>
                                 <div id="events-container" class="grid grid-cols-1 gap-4 md:grid-cols-2"></div>
                             </div>
                         </div>
                         <!-- Right Column -->
                         <div class="lg:col-span-1 order-1 lg:order-2">
                             <div class="glass-card flex h-full flex-col items-center rounded-3xl p-8 shadow-xl">
-                                <h2 class="mb-6 text-2xl font-semibold text-white">Attendance Summary</h2>
-                                <div class="h-56 w-56 flex-shrink-0 md:h-64 md:w-64"><canvas id="attendanceChart"></canvas></div>
-                                <div class="mt-8 w-full space-y-3 text-base font-medium text-white/80">
-                                    <div class="flex items-center"><span class="mr-3 inline-block h-4 w-4 rounded-full" style="background-color: #6D9F91;"></span><span>Above 85% (Safe)</span></div>
-                                    <div class="flex items-center"><span class="mr-3 inline-block h-4 w-4 rounded-full" style="background-color: #E0C080;"></span><span>75-85% (Warning)</span></div>
-                                    <div class="flex items-center"><span class="mr-3 inline-block h-4 w-4 rounded-full" style="background-color: #E5989B;"></span><span>Below 75% (Danger)</span></div>
+                                <div class="flex items-center gap-3 mb-6">
+                                    <div class="w-10 h-10 bg-[var(--accent-purple-1)] rounded-lg flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-[var(--dark-blue)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                                    </div>
+                                    <h2 class="text-2xl font-semibold text-white">Attendance Summary</h2>
+                                </div>
+                                <div class="h-56 w-56 flex-shrink-0 md:h-64 md:w-64 mb-6"><canvas id="attendanceChart"></canvas></div>
+                                <div class="w-full space-y-3 text-sm font-medium text-white/80">
+                                    <div class="flex items-center justify-between p-3 bg-green-600/10 rounded-lg border border-green-600/20">
+                                        <div class="flex items-center gap-3">
+                                            <span class="inline-block h-3 w-3 rounded-full" style="background-color: #6D9F91;"></span>
+                                            <span>Above 85%</span>
+                                        </div>
+                                        <span class="text-green-400 font-semibold">Safe</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-yellow-600/10 rounded-lg border border-yellow-600/20">
+                                        <div class="flex items-center gap-3">
+                                            <span class="inline-block h-3 w-3 rounded-full" style="background-color: #E0C080;"></span>
+                                            <span>75-85%</span>
+                                        </div>
+                                        <span class="text-yellow-400 font-semibold">Warning</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-red-600/10 rounded-lg border border-red-600/20">
+                                        <div class="flex items-center gap-3">
+                                            <span class="inline-block h-3 w-3 rounded-full" style="background-color: #E5989B;"></span>
+                                            <span>Below 75%</span>
+                                        </div>
+                                        <span class="text-red-400 font-semibold">Danger</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -295,47 +329,14 @@
                 }
             });
 
-            // --- 1. MOCK DATA & INITIAL SETUP ---
+            // --- 1. DYNAMIC DATA LOADING ---
             const studentData = {
-                name: "Alex Williams",
-                id: "67890",
-                initial: "A",
-                attendance: [{
-                    subject: 'Data Structures',
-                    totalClasses: 20,
-                    attendedClasses: 20
-                }, {
-                    subject: 'Operating Systems',
-                    totalClasses: 18,
-                    attendedClasses: 18
-                }, {
-                    subject: 'Computer Networks',
-                    totalClasses: 22,
-                    attendedClasses: 18
-                }, // Example of lower attendance
-                {
-                    subject: 'Calculus',
-                    totalClasses: 25,
-                    attendedClasses: 20
-                }, // Example of lower attendance
-                {
-                    subject: 'History',
-                    totalClasses: 15,
-                    attendedClasses: 15
-                }],
-                schedule: [{
-                    time: '09:00 AM',
-                    subject: 'Data Structures',
-                    color: 'blue'
-                }, {
-                    time: '10:15 AM',
-                    subject: 'Operating Systems',
-                    color: 'purple'
-                }, {
-                    time: '11:30 AM',
-                    subject: 'Computer Networks',
-                    color: 'pink'
-                }],
+                name: "Loading...",
+                id: "Loading...",
+                initial: "L",
+                attendance: [],
+                attendanceStatus: {},
+                schedule: [],
                 events: [{
                     title: 'Mid-Term Exams Start',
                     date: 'Sep 15, 2025'
@@ -348,7 +349,84 @@
                 }]
             };
 
-            // --- 2. DYNAMIC CONTENT RENDERING ---
+            // --- 2. API FUNCTIONS ---
+            async function fetchStudentInfo() {
+                try {
+                    const response = await fetch('/api/student/me');
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            studentData.name = data.student.name || 'Student';
+                            studentData.id = data.student.student_id || 'N/A';
+                            studentData.initial = data.student.name ? data.student.name.charAt(0).toUpperCase() : 'S';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching student info:', error);
+                }
+            }
+
+            async function fetchTodaysClasses() {
+                try {
+                    const response = await fetch('/api/student/classes/today');
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            studentData.schedule = data.classes.map(cls => ({
+                                time: cls.time,
+                                subject: cls.subject,
+                                teacher: cls.teacher,
+                                room: cls.room,
+                                color: cls.color
+                            }));
+                        } else {
+                            console.error('Error fetching classes:', data.message);
+                        }
+                    } else {
+                        console.error('HTTP error:', response.status);
+                    }
+                } catch (error) {
+                    console.error('Error fetching today\'s classes:', error);
+                }
+            }
+
+            async function fetchAttendanceSummary() {
+                try {
+                    const response = await fetch('/api/student/attendance/summary');
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            studentData.attendance = data.attendance.map(att => ({
+                                subject: att.subject,
+                                totalClasses: att.totalClasses,
+                                attendedClasses: att.attendedClasses
+                            }));
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching attendance summary:', error);
+                }
+            }
+
+            async function fetchAttendanceStatus() {
+                try {
+                    const response = await fetch('/api/student/attendance/status');
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('DEBUG: Attendance status response:', data);
+                        if (data.success) {
+                            studentData.attendanceStatus = data.attendance_status;
+                            console.log('DEBUG: Set attendanceStatus to:', studentData.attendanceStatus);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching attendance status:', error);
+                }
+            }
+
+            // --- 3. DYNAMIC CONTENT RENDERING ---
             function populateStudentInfo() {
                 document.getElementById('welcome-heading').textContent = `Hello, ${studentData.name.split(' ')[0]}!`;
                 document.getElementById('student-name').textContent = studentData.name;
@@ -357,6 +435,7 @@
             }
 
             function renderTimetable() {
+                console.log('DEBUG: Rendering timetable with attendanceStatus:', studentData.attendanceStatus);
                 const container = document.getElementById('timetable-container');
                 container.innerHTML = '';
                 if (!studentData.schedule || studentData.schedule.length === 0) {
@@ -367,22 +446,39 @@
                     blue: 'bg-blue-900/50 text-blue-200',
                     purple: 'bg-purple-900/50 text-purple-200',
                     pink: 'bg-pink-900/50 text-pink-200',
+                    green: 'bg-green-900/50 text-green-200',
+                    orange: 'bg-orange-900/50 text-orange-200',
+                    teal: 'bg-teal-900/50 text-teal-200',
                 };
                 studentData.schedule.forEach(cls => {
+                    console.log(`DEBUG: Processing class ${cls.subject}, attendanceStatus:`, studentData.attendanceStatus[cls.subject]);
                     const classEl = document.createElement('div');
-                    // Improved responsive layout for mobile
-                    classEl.className = 'flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-black/20 rounded-lg shadow-sm';
+                    // Improved responsive layout with better alignment
+                    classEl.className = 'flex flex-col lg:flex-row lg:items-center gap-4 p-5 bg-black/20 rounded-xl shadow-sm border border-white/10 hover:bg-black/30 transition-all duration-200';
                     classEl.innerHTML = `
-                        <div class="flex items-center w-full sm:w-auto">
-                            <p class="font-medium text-white/90 text-sm sm:text-base w-20 sm:w-24 flex-shrink-0">${cls.time}</p>
-                            <span class="${colorClasses[cls.color] || 'bg-gray-700'} px-3 py-1.5 rounded-full font-semibold text-xs sm:text-sm truncate flex-1 min-w-0">
-                                ${cls.subject}
-                            </span>
+                        <div class="flex items-start lg:items-center gap-4 flex-1 min-w-0">
+                            <div class="flex-shrink-0 w-20 lg:w-24">
+                                <p class="font-semibold text-white/90 text-sm lg:text-base">${cls.time}</p>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                                    <span class="${colorClasses[cls.color] || 'bg-gray-700'} px-3 py-1.5 rounded-full font-semibold text-sm inline-block w-fit">
+                                        ${cls.subject}
+                                    </span>
+                                    ${cls.day ? `<span class="px-2 py-1 bg-blue-600/20 text-blue-300 text-xs rounded-full inline-block w-fit">${cls.day}</span>` : ''}
+                                </div>
+                                <div class="space-y-1">
+                                    ${cls.teacher ? `<p class="text-sm text-white/70"> ${cls.teacher}</p>` : ''}
+                                    ${cls.room ? `<p class="text-sm text-white/70"> Room: ${cls.room}</p>` : ''}
+                                </div>
+                            </div>
                         </div>
-                        <button onclick="openFaceRecognition('${cls.subject}')" 
-                                class="w-full sm:w-auto flex-shrink-0 px-4 py-2 bg-[var(--accent-purple-1)] text-[var(--dark-blue)] rounded-full shadow-md hover:bg-[var(--light-purple)] transition-colors text-sm font-semibold whitespace-nowrap">
-                            Mark Attendance
-                        </button>
+                        <div class="flex-shrink-0">
+                            <button onclick="openFaceRecognition('${cls.subject}')" 
+                                    class="w-full lg:w-auto px-6 py-2.5 ${studentData.attendanceStatus[cls.subject] ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-[var(--accent-purple-1)] hover:bg-[var(--light-purple)] text-[var(--dark-blue)]'} rounded-lg shadow-md transition-all duration-200 text-sm font-semibold whitespace-nowrap flex items-center justify-center gap-2">
+                                ${studentData.attendanceStatus[cls.subject] ? '✅ Attendance Marked' : ' Mark Attendance'}
+                            </button>
+                        </div>
                     `;
                     container.appendChild(classEl);
                 });
@@ -397,12 +493,16 @@
                 }
                 studentData.events.forEach(event => {
                     const eventEl = document.createElement('div');
-                    eventEl.className = 'bg-black/20 rounded-lg p-4 shadow-sm flex items-center';
+                    eventEl.className = 'bg-black/20 rounded-xl p-5 shadow-sm border border-white/10 hover:bg-black/30 transition-all duration-200';
                     eventEl.innerHTML = `
-                        <svg class="w-6 h-6 text-white/70 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h.01M17 11h.01M16 21H8a2 2 0 01-2-2V7a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path></svg>
-                        <div>
-                            <p class="font-medium text-lg text-white">${event.title}</p>
-                            <p class="text-sm text-white/70">${event.date}</p>
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-10 h-10 bg-[var(--accent-purple-1)] rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-[var(--dark-blue)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h.01M17 11h.01M16 21H8a2 2 0 01-2-2V7a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path></svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-lg text-white mb-1">${event.title}</p>
+                                <p class="text-sm text-white/70">📅 ${event.date}</p>
+                            </div>
                         </div>
                     `;
                     container.appendChild(eventEl);
@@ -435,40 +535,90 @@
                 };
             }
 
-            const attendancePercentages = calculateOverallAttendance(studentData.attendance);
-            const ctx = document.getElementById('attendanceChart').getContext('2d');
-            const attendanceChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Above 85%', '75% - 85%', 'Below 75%'],
-                    datasets: [{
-                        data: [attendancePercentages.safe, attendancePercentages.warning, attendancePercentages.danger],
-                        backgroundColor: ['#6D9F91', '#E0C080', '#E5989B'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '70%',
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: (item) => `${item.label}: ${item.raw.toFixed(1)}%`
+            let attendanceChart = null;
+
+            function updateAttendanceChart() {
+                const attendancePercentages = calculateOverallAttendance(studentData.attendance);
+                const ctx = document.getElementById('attendanceChart').getContext('2d');
+                
+                if (attendanceChart) {
+                    attendanceChart.destroy();
+                }
+                
+                attendanceChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Above 85%', '75% - 85%', 'Below 75%'],
+                        datasets: [{
+                            data: [attendancePercentages.safe, attendancePercentages.warning, attendancePercentages.danger],
+                            backgroundColor: ['#6D9F91', '#E0C080', '#E5989B'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (item) => `${item.label}: ${item.raw.toFixed(1)}%`
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
+            }
 
-            // --- 4. FACE RECOGNITION MODAL LOGIC ---
+            // --- 4. ATTENDANCE MANAGEMENT ---
+            async function removeAttendance(subject) {
+                if (!confirm(`Are you sure you want to remove your attendance for ${subject}?`)) {
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/student/attendance/remove', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            subject: subject
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Update local data
+                        studentData.attendanceStatus[subject] = false;
+                        renderTimetable();
+                        
+                        // Show success message
+                        alert(`✅ Attendance removed for ${subject}`);
+                    } else {
+                        alert(`❌ Error: ${result.message}`);
+                    }
+                } catch (error) {
+                    console.error('Error removing attendance:', error);
+                    alert('Error removing attendance. Please try again.');
+                }
+            }
+
+            // --- 5. FACE RECOGNITION MODAL LOGIC ---
             let currentStream = null;
             let currentSubject = null;
 
             window.openFaceRecognition = async (subjectName) => {
+                // Check if attendance is already marked
+                if (studentData.attendanceStatus[subjectName]) {
+                    alert(`✅ Attendance already marked for ${subjectName}`);
+                    return;
+                }
+                
                 currentSubject = subjectName;
                 const modal = document.getElementById('face-recognition-modal');
                 const modalTitle = document.getElementById('face-modal-title');
@@ -557,6 +707,10 @@
                             resultEl.className = 'mt-4 p-3 rounded-lg bg-green-600/20 border border-green-500/30';
                             statusEl.textContent = 'Attendance marked successfully!';
                             
+                            // Update attendance status and refresh UI
+                            studentData.attendanceStatus[currentSubject] = true;
+                            renderTimetable();
+                            
                             // Auto-close after 3 seconds
                             setTimeout(() => {
                                 closeFaceRecognition();
@@ -580,10 +734,93 @@
             };
 
             // --- 5. INITIALIZE DASHBOARD ---
-            populateStudentInfo();
-            renderTimetable();
-            renderEvents();
+            async function initializeDashboard() {
+                // Show loading state
+                document.getElementById('welcome-heading').textContent = 'Loading...';
+                document.getElementById('student-name').textContent = 'Loading...';
+                document.getElementById('student-id').textContent = 'Loading...';
+                
+                // Fetch all data in parallel
+                await Promise.all([
+                    fetchStudentInfo(),
+                    fetchTodaysClasses(),
+                    fetchAttendanceSummary(),
+                    fetchAttendanceStatus()
+                ]);
+                
+                // Update UI with fetched data
+                populateStudentInfo();
+                renderTimetable();
+                renderEvents();
+                
+                // Update attendance chart with new data
+                updateAttendanceChart();
+            }
+
+            // Manual refresh only - no auto-refresh
+
+
+            // Initialize dashboard
+            initializeDashboard();
         });
+
+        // --- 6. LOGOUT FUNCTIONALITY ---
+        async function handleLogout() {
+            // Show confirmation dialog
+            if (confirm('Are you sure you want to logout?')) {
+                try {
+                    // Show loading state
+                    const logoutButton = document.querySelector('a[onclick="handleLogout()"]');
+                    if (logoutButton) {
+                        const originalText = logoutButton.innerHTML;
+                        logoutButton.innerHTML = '<svg class="h-5 w-5 mr-3 flex-shrink-0 transition-all animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-dashoffset="32"><animate attributeName="stroke-dashoffset" dur="2s" values="32;0" repeatCount="indefinite"/></circle></svg><span class="nav-text whitespace-nowrap">Logging out...</span>';
+                    }
+                    
+                    // Clear any stored client-side session data
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    
+                    // Clear any cached data
+                    if ('caches' in window) {
+                        caches.keys().then(names => {
+                            names.forEach(name => {
+                                caches.delete(name);
+                            });
+                        });
+                    }
+                    
+                    // Call logout API to end server-side session
+                    const response = await fetch('/api/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'same-origin' // Include session cookies
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        console.log('✅ Session terminated successfully:', result.message);
+                    } else {
+                        console.warn('⚠️ Logout API returned error:', result.message);
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error during logout API call:', error);
+                    // Continue with logout even if API call fails
+                } finally {
+                    // Force clear any remaining session data
+                    document.cookie.split(";").forEach(function(c) { 
+                        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                    });
+                    
+                    // Always redirect to main login dashboard regardless of API response
+                    // Use replace to prevent back button from returning to dashboard
+                    window.location.replace('/');
+                }
+            }
+        }
     </script>
 </body>
 

@@ -92,6 +92,10 @@
                             <img id="teacher-avatar" class="h-10 w-10 rounded-full border-2 border-white/20" src="https://placehold.co/40x40/d8ccf2/02020a?text=..." alt="User Avatar">
                             <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-[var(--dark-blue)]"></span>
                         </div>
+                        <button onclick="logout()" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center space-x-2 border border-red-500/30 hover:border-red-400/50">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                            <span class="hidden sm:inline">Logout</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -341,7 +345,24 @@
                 { id: 5, date: '2025-10-20', title: 'Project Submissions Due' },
             ];
 
-            const allClassInfo = { 'ds': { subject: 'Data Structures'}, 'os': { subject: 'Operating Systems'}, 'dbms': { subject: 'Database Management'}, 'cn': { subject: 'Computer Networks'} };
+            const allClassInfo = { 
+                'ds': { subject: 'Data Structures'}, 
+                'os': { subject: 'Operating Systems'}, 
+                'dbms': { subject: 'Database Management'}, 
+                'cn': { subject: 'Computer Networks'},
+                'ml': { subject: 'Machine Learning'},
+                'ai': { subject: 'Artificial Intelligence'},
+                'se': { subject: 'Software Engineering'},
+                'wd': { subject: 'Web Development'},
+                'md': { subject: 'Mobile Development'},
+                'cs': { subject: 'Cybersecurity'},
+                'pm': { subject: 'Project Management'},
+                'math': { subject: 'Mathematics'},
+                'physics': { subject: 'Physics'},
+                'chemistry': { subject: 'Chemistry'},
+                'english': { subject: 'English'},
+                'history': { subject: 'History'}
+            };
             const classNotes = {};
             let currentDateKey = new Date('2025-09-08T00:00:00').toISOString().split('T')[0];
 
@@ -742,14 +763,60 @@
             // --- DATABASE TEAM: Endpoint: POST /api/classes ---
             addClassForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const newClassId = document.getElementById('new-class-subject').value;
-                const newClassData = { id: newClassId, subject: allClassInfo[newClassId].subject, time: document.getElementById('new-class-time').value, room: document.getElementById('new-class-room').value, };
-                if (!newClassData.id || !newClassData.time || !newClassData.room) { showToast('Please fill out all fields.'); return; }
-                if (!mockSchedule[currentDateKey]) { mockSchedule[currentDateKey] = []; }
-                mockSchedule[currentDateKey].push(newClassData);
-                showToast('Class added successfully!');
-                closeAddClassModal();
-                renderTodaysClasses();
+                const subjectId = document.getElementById('new-class-subject').value;
+                const time_slot = document.getElementById('new-class-time').value;
+                const room = document.getElementById('new-class-room').value;
+                
+                if (!subjectId || !time_slot || !room) { 
+                    showToast('Please fill out all fields.'); 
+                    return; 
+                }
+                
+                // Get full subject name from the ID
+                const subject = allClassInfo[subjectId] ? allClassInfo[subjectId].subject : subjectId;
+                
+                try {
+                    // Call API to add class to database
+                    const response = await fetch('/api/teacher/classes/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            subject: subject,
+                            time_slot: time_slot,
+                            room: room,
+                            date: currentDateKey
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Update local mock data for immediate UI update
+                        if (!mockSchedule[currentDateKey]) { 
+                            mockSchedule[currentDateKey] = []; 
+                        }
+                        mockSchedule[currentDateKey].push({
+                            id: result.class_id,
+                            subject: subject,
+                            time: time_slot,
+                            room: room
+                        });
+                        
+                        showToast(`✅ Class added successfully! All students enrolled.`);
+                        closeAddClassModal();
+                        renderTodaysClasses();
+                        
+                        // Notify that students should refresh their dashboard
+                        console.log('📢 New class added - students should refresh their dashboard');
+                    } else {
+                        showToast(`❌ Error: ${result.message}`);
+                    }
+                } catch (error) {
+                    console.error('Error adding class:', error);
+                    showToast('Error adding class. Please try again.');
+                }
             });
             
             // --- DATABASE TEAM: Endpoint: POST /api/events ---
@@ -772,10 +839,40 @@
                     openQRModal(classId, classSubject, classDate, classTime);
                 } else if (button.classList.contains('remove-class-btn')) {
                     if (confirm('Are you sure you want to remove this class?')) {
-                        const schedule = mockSchedule[currentDateKey];
-                        if(schedule) {
-                            const classIndex = schedule.findIndex(c => c.id === classId && c.time === classTime);
-                            if (classIndex > -1) { schedule.splice(classIndex, 1); showToast('Class removed!'); renderTodaysClasses(); }
+                        // Call API to remove class from database
+                        try {
+                            const response = await fetch('/api/teacher/classes/remove', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    class_id: classId
+                                })
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (result.success) {
+                                // Update local mock data
+                                const schedule = mockSchedule[currentDateKey];
+                                if(schedule) {
+                                    const classIndex = schedule.findIndex(c => c.id === classId && c.time === classTime);
+                                    if (classIndex > -1) { 
+                                        schedule.splice(classIndex, 1); 
+                                        showToast('✅ Class removed successfully!'); 
+                                        renderTodaysClasses(); 
+                                    }
+                                }
+                                
+                                // Notify that students should refresh their dashboard
+                                console.log('📢 Class removed - students should refresh their dashboard');
+                            } else {
+                                showToast(`❌ Error: ${result.message}`);
+                            }
+                        } catch (error) {
+                            console.error('Error removing class:', error);
+                            showToast('Error removing class. Please try again.');
                         }
                     }
                 }
@@ -832,7 +929,82 @@
             document.getElementById('class-select-shared').addEventListener('change', renderSharedNotes);
 
              // =================================================================
-             // --- 4. INITIAL PAGE LOAD ---
+             // --- 4. LOGOUT FUNCTIONALITY ---
+             // =================================================================
+             
+             window.logout = async () => {
+                if (confirm('Are you sure you want to logout?')) {
+                    try {
+                        // Update logout button with loading state
+                        const logoutButton = document.querySelector('button[onclick="logout()"]');
+                        if (logoutButton) {
+                            const originalHTML = logoutButton.innerHTML;
+                            logoutButton.innerHTML = `
+                                <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-dashoffset="32">
+                                        <animate attributeName="stroke-dashoffset" dur="2s" values="32;0" repeatCount="indefinite"/>
+                                    </circle>
+                                </svg>
+                                <span class="hidden sm:inline ml-2">Logging out...</span>
+                            `;
+                        }
+                        
+                        // Clear any stored client-side session data
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        
+                        // Clear any cached data
+                        if ('caches' in window) {
+                            caches.keys().then(names => {
+                                names.forEach(name => {
+                                    caches.delete(name);
+                                });
+                            });
+                        }
+                        
+                        // Show logout message
+                        showToast('Logging out... Ending session.');
+                        
+                        // Call logout API to end server-side session
+                        const response = await fetch('/api/logout', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            credentials: 'same-origin' // Include session cookies
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            console.log('✅ Session terminated successfully:', result.message);
+                            showToast('✅ Session ended successfully!');
+                        } else {
+                            console.warn('⚠️ Logout API returned error:', result.message);
+                            showToast('⚠️ Session ended with warnings.');
+                        }
+                        
+                    } catch (error) {
+                        console.error('❌ Error during logout API call:', error);
+                        showToast('⚠️ Network error during logout, but continuing...');
+                        // Continue with logout even if API call fails
+                    } finally {
+                        // Force clear any remaining session data and cookies
+                        document.cookie.split(";").forEach(function(c) { 
+                            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                        });
+                        
+                        // Always redirect to main login dashboard regardless of API response
+                        // Use replace to prevent back button from returning to dashboard
+                        setTimeout(() => {
+                            window.location.replace('/');
+                        }, 1500);
+                    }
+                }
+             };
+
+             // =================================================================
+             // --- 5. INITIAL PAGE LOAD ---
              // =================================================================
              fetchTeacherInfo();
              renderTodaysClasses();

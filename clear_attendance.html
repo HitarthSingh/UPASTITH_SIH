@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Attendance Data</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #02020a 0%, #272757 100%);
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full mx-4 text-center">
+        <h1 class="text-2xl font-bold text-white mb-6">Clear Attendance Data</h1>
+        <p class="text-white/70 mb-6">This will clear all attendance records from the database.</p>
+        
+        <button id="clearBtn" 
+                class="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-lg font-semibold transition-colors">
+            Clear All Attendance Data
+        </button>
+        
+        <div id="result" class="mt-4 hidden">
+            <p id="resultText" class="text-sm"></p>
+        </div>
+        
+        <div class="mt-6">
+            <a href="/" class="text-blue-400 hover:text-blue-300 text-sm">← Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('clearBtn').addEventListener('click', async function() {
+            const btn = this;
+            const result = document.getElementById('result');
+            const resultText = document.getElementById('resultText');
+            
+            btn.textContent = 'Clearing...';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/clear-attendance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultText.textContent = `✅ ${data.message}`;
+                    resultText.className = 'text-sm text-green-400';
+                } else {
+                    resultText.textContent = `❌ ${data.message}`;
+                    resultText.className = 'text-sm text-red-400';
+                }
+                
+                result.classList.remove('hidden');
+                
+            } catch (error) {
+                resultText.textContent = `❌ Error: ${error.message}`;
+                resultText.className = 'text-sm text-red-400';
+                result.classList.remove('hidden');
+            }
+            
+            btn.textContent = 'Clear All Attendance Data';
+            btn.disabled = false;
+        });
+    </script>
+</body>
+</html>
+
