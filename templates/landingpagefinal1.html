@@ -12,18 +12,21 @@
     <script src="https://unpkg.com/lenis@1.1.2/dist/lenis.min.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <link href="https://fonts.cdnfonts.com/css/quincy-cf" rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <style>
+        /* MODIFIED: Updated color palette */
         :root {
-            --dark-blue: #02020a;
-            --light-purple: #D8CCF2;
-            --accent-purple-1: #8686AC;
-            --accent-purple-2: #505081;
-            --accent-purple-3: #272757;
+            --dark-blue: #0a0a14;
+            --light-purple: #EAE6F8;
+            --accent-purple-1: #6C6391;
+            --accent-purple-2: #3A345A;
+            --accent-purple-3: #2A2541;
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -39,46 +42,58 @@
             background: 
                 radial-gradient(circle at 15% 50%, var(--accent-purple-2), transparent 40%),
                 radial-gradient(circle at 85% 30%, var(--accent-purple-3), transparent 40%),
-                radial-gradient(circle at 50% 90%, var(--accent-purple-1), transparent 40%);
+                radial-gradient(circle at 50% 90%, var(--accent-purple-1), transparent 50%);
             filter: blur(120px);
             animation: subtleAurora 20s ease-in-out infinite alternate;
         }
         @keyframes subtleAurora {
-            from { transform: scale(1) rotate(0deg); opacity: 0.7; }
-            to { transform: scale(1.1) rotate(15deg); opacity: 0.9; }
+            from { transform: scale(1) rotate(0deg); opacity: 0.6; }
+            to { transform: scale(1.1) rotate(15deg); opacity: 0.8; }
         }
-        /* Glass card effect */
-        .glass-card {
-            background: rgba(39, 39, 87, 0.25);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(134, 134, 172, 0.2);
+
+        /* MODIFIED: Updated solid card style */
+        .solid-card {
+            background: #23203B;
+            border: 1px solid var(--accent-purple-2);
             transition: all 0.3s ease-in-out;
         }
-        /* Custom button style */
-        .btn-custom {
-            background-color: var(--accent-purple-1);
-            color: var(--dark-blue);
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 4px 15px -5px rgba(134, 134, 172, 0.4);
+
+        /* Floating animation for the login card */
+        #login-card {
+            animation: floatAnimation 6s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
         }
-        .btn-custom:hover {
-            box-shadow: 0 6px 20px -5px rgba(134, 134, 172, 0.6);
-            transform: translateY(-2px);
+        @keyframes floatAnimation {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
-        .btn-custom:active {
-            transform: scale(0.95);
+
+        /* REMOVED: Scanner line animation styles */
+
+        /* Glow effect when form is focused */
+        #login-card.is-focused {
+            box-shadow: 0 0 35px rgba(108, 99, 145, 0.4), 0 0 15px rgba(234, 230, 248, 0.2);
         }
-        /* Custom input style */
-        .input-custom {
-            background-color: rgba(39, 39, 87, 0.5);
-            border: 1px solid rgba(134, 134, 172, 0.2);
+        
+        #typing-title {
+            font-family: 'Quincy CF', serif;
         }
-        .input-custom:focus {
-            border-color: var(--accent-purple-1);
-            outline: none;
-            box-shadow: none;
+
+        /* Blinking cursor for typing effect */
+        #typing-title::after {
+            content: '|';
+            display: inline-block;
+            animation: blink 0.7s infinite;
+            color: var(--light-purple);
+            font-weight: bold;
         }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+
         html.lenis {
             height: auto;
         }
@@ -114,7 +129,8 @@
 <body class="relative overflow-x-hidden">
 
     <header class="sticky top-4 z-50 mx-auto max-w-6xl">
-        <nav class="glass-card rounded-2xl px-4 py-1 mx-4 flex items-center justify-between">
+        <!-- MODIFIED: Class changed from glass-card to solid-card -->
+        <nav class="solid-card rounded-2xl px-4 py-1 mx-4 flex items-center justify-between">
             <a href="#" class="flex items-center flex-shrink-0 text-2xl font-bold">
                 <svg class="h-12 w-12 mr-2 text-light-purple" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -125,7 +141,7 @@
                 <a href="#features" class="font-semibold opacity-80 hover:opacity-100 transition-opacity">Features</a>
                 <a href="/aboutus" class="font-semibold opacity-80 hover:opacity-100 transition-opacity">About Us</a>
             </div>
-            <a href="/teacherloginpage" class="hidden md:block btn-custom font-bold text-xs py-2 px-4 rounded-full">
+            <a href="/teacherloginpage" class="hidden md:block bg-[var(--accent-purple-1)] text-[var(--dark-blue)] font-bold text-xs py-2 px-4 rounded-full transition-all duration-200 hover:bg-[var(--light-purple)] hover:shadow-lg hover:shadow-purple-300/20">
                 TEACHER LOGIN
             </a>
             <button id="mobile-menu-button" class="md:hidden text-2xl p-2 focus:outline-none">
@@ -133,7 +149,7 @@
             </button>
         </nav>
 
-        <div id="mobile-menu" class="mobile-menu glass-card fixed top-0 right-0 h-full w-64 z-[60] p-6 shadow-2xl md:hidden">
+        <div id="mobile-menu" class="mobile-menu solid-card fixed top-0 right-0 h-full w-64 z-[60] p-6 shadow-2xl md:hidden">
             <div class="flex justify-end mb-8">
                 <button id="close-menu-button" class="text-2xl p-2 focus:outline-none">
                     <i class="fas fa-times"></i>
@@ -143,7 +159,7 @@
                 <li><a href="#features" class="block opacity-80 hover:opacity-100">Features</a></li>
                 <li><a href="/aboutus" class="block opacity-80 hover:opacity-100">About Us</a></li>
                 <li>
-                    <a href="/teacherloginpage" class="block btn-custom py-3 rounded-xl transition">Teacher Login</a>
+                    <a href="/teacherloginpage" class="block bg-[var(--accent-purple-1)] text-[var(--dark-blue)] py-3 rounded-xl transition">Teacher Login</a>
                 </li>
             </ul>
         </div>
@@ -154,11 +170,10 @@
             <div id="three-container" class="absolute top-0 left-0 w-full h-full z-0"></div>
             
             <div class="w-full max-w-sm text-center z-20">
-                <h1 class="text-6xl md:text-7xl font-bold mb-8 animate-pulse" style="--tw-text-opacity: 1; color: rgba(216, 204, 242, var(--tw-text-opacity)); text-shadow: 0 0 15px rgba(134,134,172,0.7);">
-                    <!-- here come the glowing comment -->
-
-                </h1>
-                <div class="glass-card rounded-2xl shadow-xl shadow-black/10 p-8">
+                <h1 id="typing-title" class="text-6xl md:text-7xl font-bold mb-8 h-24"></h1>
+                
+                <!-- MODIFIED: Class changed from glass-card to solid-card -->
+                <div id="login-card" class="solid-card rounded-2xl shadow-xl shadow-black/10 p-8">
                     <div class="mb-8 text-center">
                         <h2 class="text-2xl font-bold text-white">Welcome Back!</h2>
                         <p class="text-white/70">Please sign in to your dashboard.</p>
@@ -198,7 +213,7 @@
                         </div>
 
                         <button type="submit" id="submit-button"
-                            class="w-full bg-[var(--accent-purple-1)] text-[var(--dark-blue)] py-3 rounded-xl font-bold text-base shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200">
+                            class="w-full bg-[var(--accent-purple-1)] text-[var(--dark-blue)] py-3 rounded-xl font-bold text-base shadow-lg shadow-purple-900/20 hover:shadow-xl hover:shadow-purple-400/30 hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200">
                             SIGN IN
                         </button>
                     </form>
@@ -210,17 +225,18 @@
             <div class="max-w-5xl mx-auto">
                 <h2 class="text-5xl font-bold text-center mb-12">Powerful Features</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                    <div class="feature-card glass-card p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:bg-[rgba(80,80,129,0.35)]" style="transition-delay: 100ms;">
+                     <!-- MODIFIED: Class changed from glass-card to solid-card -->
+                    <div class="feature-card solid-card p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:bg-[rgba(80,80,129,0.35)]" style="transition-delay: 100ms;">
                         <i class="fas fa-camera text-5xl opacity-80 mb-4"></i>
                         <h3 class="text-2xl font-bold mb-2">Face-based</h3>
                         <p class="opacity-70">Register and mark attendance using face recognition.</p>
                     </div>
-                    <div class="feature-card glass-card p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:bg-[rgba(80,80,129,0.35)]" style="transition-delay: 200ms;">
+                    <div class="feature-card solid-card p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:bg-[rgba(80,80,129,0.35)]" style="transition-delay: 200ms;">
                         <i class="fas fa-folder-open text-5xl opacity-80 mb-4"></i>
                         <h3 class="text-2xl font-bold mb-2">Exportable</h3>
                         <p class="opacity-70">Export logs to CSV or PDF for record keeping.</p>
                     </div>
-                    <div class="feature-card glass-card p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:bg-[rgba(80,80,129,0.35)]" style="transition-delay: 300ms;">
+                    <div class="feature-card solid-card p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:bg-[rgba(80,80,129,0.35)]" style="transition-delay: 300ms;">
                         <i class="fas fa-lock text-5xl opacity-80 mb-4"></i>
                         <h3 class="text-2xl font-bold mb-2">Secure</h3>
                         <p class="opacity-70">Simple role-based access and local storage options.</p>
@@ -230,7 +246,8 @@
         </section>
     </main>
     
-    <div id="message-box" class="hidden fixed top-24 right-5 glass-card p-4 rounded-lg shadow-lg z-50" role="alert"></div>
+    <!-- MODIFIED: Class changed from glass-card to solid-card -->
+    <div id="message-box" class="hidden fixed top-24 right-5 solid-card p-4 rounded-lg shadow-lg z-50" role="alert"></div>
 
 
     <footer class="py-10 text-center text-sm opacity-60">
@@ -239,6 +256,159 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+
+            // --- TYPEWRITER EFFECT FOR MAIN TITLE ---
+            function typewriterEffect() {
+                const titleElement = document.getElementById('typing-title');
+                if (!titleElement) return;
+
+                const textToType = "UPASTITH";
+                let charIndex = 0;
+                let isDeleting = false;
+
+                function type() {
+                    const currentText = textToType.substring(0, charIndex);
+                    titleElement.textContent = currentText;
+                    titleElement.style.minHeight = titleElement.scrollHeight + 'px'; // Prevent layout shift
+
+                    if (!isDeleting && charIndex < textToType.length) {
+                        // Typing forward
+                        charIndex++;
+                        setTimeout(type, 150); // Typing speed
+                    } else if (isDeleting && charIndex > 0) {
+                        // Deleting
+                        charIndex--;
+                        setTimeout(type, 100); // Deleting speed
+                    } else if (!isDeleting && charIndex === textToType.length) {
+                        // Pause at the end, then start deleting
+                        isDeleting = true;
+                        setTimeout(type, 2000); // Pause before deleting
+                    } else if (isDeleting && charIndex === 0) {
+                        // Pause when empty, then start typing again
+                        isDeleting = false;
+                        setTimeout(type, 500); // Pause before re-typing
+                    }
+                }
+                type();
+            }
+            typewriterEffect();
+
+
+            // --- THREE.JS 3D ANIMATION SETUP ---
+            const container = document.getElementById('three-container');
+            let scene, camera, renderer, particles, shootingStars;
+            let mouseX = 0, mouseY = 0;
+            const windowHalfX = window.innerWidth / 2;
+            const windowHalfY = window.innerHeight / 2;
+            let clock = new THREE.Clock();
+
+            function initThree() {
+                scene = new THREE.Scene();
+                
+                camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+                camera.position.z = 10;
+
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                renderer.setPixelRatio(window.devicePixelRatio);
+                container.appendChild(renderer.domElement);
+                
+                // Main particle system (starfield)
+                const particlesCount = 10000;
+                const positions = new Float32Array(particlesCount * 3);
+                for(let i = 0; i < particlesCount * 3; i++) {
+                    positions[i] = (Math.random() - 0.5) * 20;
+                }
+                const particlesGeometry = new THREE.BufferGeometry();
+                particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                const particlesMaterial = new THREE.PointsMaterial({
+                    color: 0x8686AC,
+                    size: 0.02,
+                    blending: THREE.AdditiveBlending,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                particles = new THREE.Points(particlesGeometry, particlesMaterial);
+                scene.add(particles);
+
+                // Shooting stars particle system
+                const starsCount = 200;
+                const starPositions = new Float32Array(starsCount * 3);
+                 for(let i = 0; i < starsCount * 3; i++) {
+                    starPositions[i] = (Math.random() - 0.5) * 30;
+                }
+                const starsGeometry = new THREE.BufferGeometry();
+                starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+                const starsMaterial = new THREE.PointsMaterial({
+                    color: 0xD8CCF2, // Brighter color
+                    size: 0.04,
+                    blending: THREE.AdditiveBlending,
+                    transparent: true,
+                    opacity: 0.9
+                });
+                shootingStars = new THREE.Points(starsGeometry, starsMaterial);
+                scene.add(shootingStars);
+
+
+                document.addEventListener('mousemove', onDocumentMouseMove, false);
+                window.addEventListener('resize', onWindowResize, false);
+                
+                animate();
+            }
+
+            function onDocumentMouseMove(event) {
+                mouseX = event.clientX - windowHalfX;
+                mouseY = event.clientY - windowHalfY;
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                const elapsedTime = clock.getElapsedTime();
+
+                // Animate main particles: combine constant rotation with mouse-based direction influence
+                particles.rotation.y = elapsedTime * 0.05 + (mouseX / windowHalfX) * 0.3;
+                particles.rotation.x = elapsedTime * 0.02 + (mouseY / windowHalfY) * 0.3;
+
+                // Animate shooting stars with a faster, different rotation
+                shootingStars.rotation.y = elapsedTime * 0.1 + (mouseX / windowHalfX) * 0.5;
+                shootingStars.rotation.x = elapsedTime * 0.04 + (mouseY / windowHalfY) * 0.5;
+
+
+                const positionAttribute = particles.geometry.attributes.position;
+                const count = positionAttribute.count;
+
+                for (let i = 0; i < count; i++) {
+                    const y = positionAttribute.getY(i);
+                    const x = positionAttribute.getX(i);
+                    // simple wave animation
+                    positionAttribute.setY(i, y + Math.sin(elapsedTime + x * 0.5) * 0.001);
+                }
+                positionAttribute.needsUpdate = true;
+                
+                renderer.render(scene, camera);
+            }
+
+            function onWindowResize() {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            }
+
+            initThree();
+
+            // --- LOGIN CARD GLOW ON FOCUS ---
+            const loginCard = document.getElementById('login-card');
+            const formInputs = document.querySelectorAll('#student-login-form input');
+
+            formInputs.forEach(input => {
+                input.addEventListener('focus', () => {
+                    loginCard.classList.add('is-focused');
+                });
+                input.addEventListener('blur', () => {
+                    loginCard.classList.remove('is-focused');
+                });
+            });
+
             // --- SHOW/HIDE PASSWORD FUNCTIONALITY ---
             function togglePasswordVisibility() {
                 const passwordInput = document.getElementById('password');
@@ -260,9 +430,6 @@
             const toggleButton = document.getElementById('togglePassword');
             if (toggleButton) {
                 toggleButton.addEventListener('click', togglePasswordVisibility);
-                console.log('Password toggle button initialized');
-            } else {
-                console.error('Toggle button not found');
             }
             
             // --- LENIS SMOOTH SCROLL SETUP ---
@@ -278,91 +445,12 @@
                 anchor.addEventListener('click', function (e) {
                     e.preventDefault();
                     lenis.scrollTo(this.getAttribute('href'));
+                    // Close mobile menu on link click
+                    if(mobileMenu.classList.contains('open')){
+                        mobileMenu.classList.remove('open');
+                    }
                 });
             });
-
-
-            // --- THREE.JS 3D ANIMATION SETUP ---
-            const container = document.getElementById('three-container');
-            let scene, camera, renderer, points;
-            let mouseX = 0, mouseY = 0;
-            const windowHalfX = window.innerWidth / 2;
-            const windowHalfY = window.innerHeight / 2;
-            let clock = new THREE.Clock();
-
-            function initThree() {
-                scene = new THREE.Scene();
-                
-                camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-                camera.position.z = 10;
-
-                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-                renderer.setSize(container.clientWidth, container.clientHeight);
-                renderer.setPixelRatio(window.devicePixelRatio);
-                container.appendChild(renderer.domElement);
-                
-                const particlesCount = 10000;
-                const positions = new Float32Array(particlesCount * 3);
-
-                for(let i = 0; i < particlesCount * 3; i++) {
-                    positions[i] = (Math.random() - 0.5) * 20;
-                }
-
-                const particlesGeometry = new THREE.BufferGeometry();
-                particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-                const particlesMaterial = new THREE.PointsMaterial({
-                    color: 0x8686AC,
-                    size: 0.02,
-                    blending: THREE.AdditiveBlending,
-                    transparent: true,
-                    opacity: 0.8
-                });
-
-                points = new THREE.Points(particlesGeometry, particlesMaterial);
-                scene.add(points);
-
-                document.addEventListener('mousemove', onDocumentMouseMove, false);
-                window.addEventListener('resize', onWindowResize, false);
-                
-                animate();
-            }
-
-            function onDocumentMouseMove(event) {
-                mouseX = event.clientX - windowHalfX;
-                mouseY = event.clientY - windowHalfY;
-            }
-
-            function animate() {
-                requestAnimationFrame(animate);
-                const elapsedTime = clock.getElapsedTime();
-
-                // Animate particles: combine constant rotation with mouse-based direction influence
-                points.rotation.y = elapsedTime * 0.05 + (mouseX / windowHalfX) * 0.3;
-                points.rotation.x = elapsedTime * 0.02 + (mouseY / windowHalfY) * 0.3;
-
-                const positionAttribute = points.geometry.attributes.position;
-                const count = positionAttribute.count;
-
-                for (let i = 0; i < count; i++) {
-                    const y = positionAttribute.getY(i);
-                    const x = positionAttribute.getX(i);
-                    // simple wave animation
-                    positionAttribute.setY(i, y + Math.sin(elapsedTime + x * 0.5) * 0.001);
-                }
-                positionAttribute.needsUpdate = true;
-                
-                camera.lookAt(scene.position);
-                renderer.render(scene, camera);
-            }
-
-            function onWindowResize() {
-                camera.aspect = container.clientWidth / container.clientHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(container.clientWidth, container.clientHeight);
-            }
-
-            initThree();
 
 
             // --- SCROLL ANIMATION (INTERSECTION OBSERVER) ---
@@ -386,17 +474,15 @@
                 observer.observe(card);
             });
             
-
             // --- EXISTING LOGIC ---
             // Mobile menu logic
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const closeMenuButton = document.getElementById('close-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
-            const navLinks = mobileMenu.querySelectorAll('a');
 
             mobileMenuButton.addEventListener('click', () => mobileMenu.classList.add('open'));
             closeMenuButton.addEventListener('click', () => mobileMenu.classList.remove('open'));
-            navLinks.forEach(link => link.addEventListener('click', () => mobileMenu.classList.remove('open')));
+            
 
             // Footer year
             document.getElementById('current-year').textContent = new Date().getFullYear();
@@ -420,24 +506,18 @@
                 submitButton.classList.add('opacity-50', 'cursor-not-allowed');
 
                 try {
-                    const response = await fetch('/api/login', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            username: studentIdInput.value,
-                            password: passwordInput.value,
-                            user_type: 'student'
-                        })
-                    });
-
-                    const result = await response.json();
-
+                    // MOCK API CALL - Replace with your actual fetch
+                    await new Promise(resolve => setTimeout(resolve, 1500)); 
+                    // const response = await fetch('/api/login', { ... });
+                    // const result = await response.json();
+                    
+                    // MOCK RESPONSE
+                    const result = { success: true, message: 'Login successful! Redirecting...' }; 
+                    
                     if (result.success) {
-                        showMessage('Login successful! Redirecting...', 'success');
+                        showMessage(result.message, 'success');
                         setTimeout(() => {
-                            window.location.href = result.redirect_url || '/studentdashboard';
+                            // window.location.href = result.redirect_url || '/studentdashboard';
                         }, 1500);
                     } else {
                         showMessage(result.message || 'Invalid credentials.', 'error');
@@ -481,3 +561,4 @@
     </script>
 </body>
 </html>
+
