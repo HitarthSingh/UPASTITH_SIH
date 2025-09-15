@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --dark-blue: #02020a;
+            --light-purple: #D8CCF2;
+            --accent-purple-1: #8686AC;
+            --accent-purple-2: #505081;
+            --accent-purple-3: #272757;
+        }
+/* ....*/
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark-blue);
+            color: var(--light-purple);
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 15% 50%, var(--accent-purple-2), transparent 40%),
+                radial-gradient(circle at 85% 30%, var(--accent-purple-3), transparent 40%),
+                radial-gradient(circle at 50% 90%, var(--accent-purple-1), transparent 40%);
+            filter: blur(120px);
+            animation: subtleAurora 20s ease-in-out infinite alternate;
+        }
+        @keyframes subtleAurora {
+            from { transform: scale(1) rotate(0deg); opacity: 0.7; }
+            to { transform: scale(1.1) rotate(15deg); opacity: 0.9; }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+
+        .modal-enter { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .glass-card {
+            background: rgba(39, 39, 87, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(134, 134, 172, 0.2);
+        }
+
+        #qrcode-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Improved Dropdown Styling */
+        select option {
+            background: #272757; /* Uses a solid color from the theme for better readability */
+            color: var(--light-purple);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    
+    <div class="min-h-screen flex flex-col">
+        
+        <header class="glass-card sticky top-4 z-50 mx-4 sm:mx-auto max-w-7xl w-full rounded-2xl">
+            <div class="px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <h1 class="text-lg sm:text-xl font-bold text-white">Automated Attendance</h1>
+                    <div class="flex items-center space-x-3">
+                        <div class="text-right hidden md:block">
+                            <p id="teacher-name" class="text-sm font-medium text-white">Loading...</p>
+                            <p id="teacher-department" class="text-xs text-white/70">...</p>
+                        </div>
+                        <div class="relative">
+                            <img id="teacher-avatar" class="h-10 w-10 rounded-full border-2 border-white/20" src="https://placehold.co/40x40/d8ccf2/02020a?text=..." alt="User Avatar">
+                            <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-[var(--dark-blue)]"></span>
+                        </div>
+                        <button onclick="logout()" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center space-x-2 border border-red-500/30 hover:border-red-400/50">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                            <span class="hidden sm:inline">Logout</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    <div class="lg:col-span-1 space-y-6">
+                        
+                        <div class="glass-card rounded-2xl shadow-xl p-6">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="bg-black/20 p-2.5 rounded-lg">
+                                    <svg class="w-6 h-6 text-[var(--light-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-bold text-white">Attendance Analytics</h2>
+                                    <p class="text-sm text-white/70">Overall Student Status</p>
+                                </div>
+                            </div>
+                            <div class="relative h-64 md:h-72"><canvas id="attendanceChart"></canvas></div>
+                            <div class="mt-6 space-y-3 text-sm font-medium text-white/80">
+                                <div class="flex items-center"><div class="w-4 h-4 rounded-full mr-3" style="background-color: #E5989B;"></div><span>Below 75% (Danger)</span></div>
+                                <div class="flex items-center"><div class="w-4 h-4 rounded-full mr-3" style="background-color: #E0C080;"></div><span>75% - 85% (Moderate)</span></div>
+                                <div class="flex items-center"><div class="w-4 h-4 rounded-full mr-3" style="background-color: #6D9F91;"></div><span>Above 85% (Safe)</span></div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card rounded-2xl shadow-xl p-6">
+                             <div class="flex justify-between items-center mb-4">
+                                <div class="flex items-center space-x-3">
+                                     <div class="bg-black/20 p-2.5 rounded-lg">
+                                         <svg class="w-6 h-6 text-[var(--light-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                     </div>
+                                     <div>
+                                         <h2 class="text-lg font-semibold text-white">Upcoming Events</h2>
+                                         <p class="text-sm text-white/70">College & holiday calendar</p>
+                                     </div>
+                                </div>
+                                <button id="add-event-btn" class="bg-[var(--accent-purple-1)] text-[var(--dark-blue)] px-3 py-1.5 rounded-full font-bold text-xs shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200 flex items-center space-x-2">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                    <span>ADD</span>
+                                </button>
+                             </div>
+                             <div id="eventsList" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                             </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 space-y-6">
+                        
+                        <div class="glass-card rounded-2xl shadow-xl p-6">
+                            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="bg-black/20 p-2.5 rounded-lg">
+                                        <svg class="w-6 h-6 text-[var(--light-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-lg font-bold text-white">Today's Classes</h2>
+                                        <p id="current-date-display" class="text-sm text-white/70">Loading today's date...</p>
+                                    </div>
+                                </div>
+                                <button id="add-class-btn" class="bg-[var(--accent-purple-1)] text-[var(--dark-blue)] px-4 py-2 w-full sm:w-auto rounded-full font-bold text-xs shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center space-x-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                    <span>ADD CLASS</span>
+                                </button>
+                            </div>
+                            
+                            <div id="classList" class="space-y-4 pt-4"></div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="glass-card rounded-2xl shadow-xl p-6">
+                                 <div class="flex items-center space-x-3 mb-4">
+                                     <div class="bg-black/20 p-2.5 rounded-lg">
+                                         <svg class="w-6 h-6 text-[var(--light-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                     </div>
+                                     <div>
+                                         <h2 class="text-lg font-semibold text-white">Upload Class Notes</h2>
+                                         <p class="text-sm text-white/70">Share materials for lectures</p>
+                                     </div>
+                                 </div>
+                                 <div class="space-y-4">
+                                     <select id="class-select-notes" class="w-full bg-black/20 text-white placeholder:text-white/50 rounded-lg p-3 border-0 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none">
+                                         <option value="">Select a class...</option>
+                                     </select>
+                                     <label for="notes-upload" class="cursor-pointer w-full text-center block bg-[var(--accent-purple-1)] text-[var(--dark-blue)] py-2 px-5 rounded-full font-bold text-sm shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200">
+                                         Choose File to Upload
+                                     </label>
+                                     <input type="file" id="notes-upload" class="hidden">
+                                     <p id="file-upload-status" class="text-xs text-center text-white/70 h-4"></p>
+                                 </div>
+                            </div>
+                            
+                            <div class="glass-card rounded-2xl shadow-xl p-6">
+                                <div class="flex items-center space-x-3 mb-4">
+                                    <div class="bg-black/20 p-2.5 rounded-lg">
+                                        <svg class="w-6 h-6 text-[var(--light-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 12h6m-1-5H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2h-5.586a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 009.586 3H7a2 2 0 00-2 2v1m14 14V7m-4-3v2m-6 0v2"></path></svg>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-lg font-semibold text-white">Shared Class Notes</h2>
+                                        <p class="text-sm text-white/70">View materials for students</p>
+                                    </div>
+                                </div>
+                                <div class="space-y-4">
+                                    <select id="class-select-shared" class="w-full bg-black/20 text-white rounded-lg p-3 border-0 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none">
+                                        <option value="">Select a class to view notes...</option>
+                                    </select>
+                                    <div id="shared-notes-display" class="mt-1 p-2 bg-black/20 rounded-lg min-h-[100px]">
+                                        <p class="text-center text-white/70 p-4">Select a class to see shared notes.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-card rounded-2xl shadow-xl p-6">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="bg-black/20 p-2.5 rounded-lg">
+                                    <svg class="w-6 h-6 text-[var(--light-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-semibold text-white">Leave Requests</h2>
+                                    <p class="text-sm text-white/70">Approve or deny student leave</p>
+                                </div>
+                            </div>
+                            <div id="leaveRequestsList" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                            </div>
+                        </div>
+
+                        <div class="glass-card rounded-2xl shadow-xl p-6">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="bg-black/20 p-2.5 rounded-lg">
+                                    <svg class="w-6 h-6 text-[var(--light-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-semibold text-white">Attendance Records</h2>
+                                    <p class="text-sm text-white/70">View status for any session</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <select id="class-select-records" class="w-full bg-black/20 text-white rounded-lg p-3 border-0 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none">
+                                    <option value="">Select a class...</option>
+                                </select>
+                                <input type="date" id="date-select-records" value="dd-mm-yyyy" class="w-full bg-black/20 text-white rounded-lg p-3 border-0 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none" style="color-scheme: dark;">
+                            </div>
+                            <div id="attendance-display" class="mt-4">
+                                <p class="text-center text-white/70 p-4">Please select a class and date.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- QR CODE MODAL -->
+    <div id="qrModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="modal-enter glass-card rounded-2xl shadow-2xl w-full max-w-md transform transition-all overflow-hidden p-6 sm:p-8 text-center">
+            <h3 id="modalTitle" class="text-2xl sm:text-3xl font-bold text-white mb-2">Scan for Attendance</h3>
+            <p class="text-lg text-white/70 mb-6">Point your camera at the code below.</p>
+            <div id="qrcode-container" class="mx-auto w-64 h-64 flex items-center justify-center"></div>
+            <p id="qr-timer-text" class="text-base text-white/70 mt-4">This code will refresh automatically.</p>
+            <p id="qr-time-shown" class="text-sm text-white/50 mt-1">Time shown: 0s</p>
+             <button id="closeModal" class="mt-6 w-full bg-[var(--accent-purple-1)] text-[var(--dark-blue)] py-3 rounded-xl font-bold text-base shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200">
+                     CLOSE
+             </button>
+        </div>
+    </div>
+    
+    <!-- ADD CLASS MODAL -->
+    <div id="addClassModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="modal-enter glass-card rounded-2xl shadow-2xl w-full max-w-md transform transition-all overflow-hidden p-6 sm:p-8">
+            <h3 class="text-xl sm:text-2xl font-bold text-white mb-4">Add a New Class</h3>
+            <form id="add-class-form" class="space-y-4">
+                <div>
+                    <label for="new-class-subject" class="text-sm font-semibold text-white/90">Subject</label>
+                    <select id="new-class-subject" class="mt-1 w-full bg-black/20 text-white rounded-lg p-3 border-2 border-white/20 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none" required>
+                        <option value="">Select subject...</option>
+                    </select>
+                </div>
+                 <div>
+                    <label for="new-class-time" class="text-sm font-semibold text-white/90">Time Slot</label>
+                    <select id="new-class-time" class="mt-1 w-full bg-black/20 text-white rounded-lg p-3 border-2 border-white/20 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none" required>
+                        <option value="">Select a time slot...</option>
+                        <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM</option>
+                        <option value="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</option>
+                        <option value="01:00 PM - 02:00 PM">01:00 PM - 02:00 PM</option>
+                        <option value="03:00 PM - 04:00 PM">03:00 PM - 04:00 PM</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="new-class-room" class="text-sm font-semibold text-white/90">Room</label>
+                    <input type="text" id="new-class-room" class="mt-1 w-full bg-black/20 text-white rounded-lg p-3 border-2 border-white/20 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none" required>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="cancelAddClass" class="px-6 py-2 bg-black/20 text-white/80 font-bold text-sm rounded-full hover:bg-black/40 transition-colors">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-[var(--accent-purple-1)] text-[var(--dark-blue)] font-bold text-sm rounded-full shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200">Add Class</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD EVENT MODAL -->
+    <div id="addEventModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="modal-enter glass-card rounded-2xl shadow-2xl w-full max-w-md transform transition-all overflow-hidden p-6 sm:p-8">
+            <h3 class="text-xl sm:text-2xl font-bold text-white mb-4">Add a New Event</h3>
+            <form id="add-event-form" class="space-y-4">
+                <div>
+                    <label for="new-event-title" class="text-sm font-semibold text-white/90">Event Title</label>
+                    <input type="text" id="new-event-title" class="mt-1 w-full bg-black/20 text-white rounded-lg p-3 border-2 border-white/20 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none" required>
+                </div>
+                <div>
+                    <label for="new-event-date" class="text-sm font-semibold text-white/90">Date</label>
+                    <input type="date" id="new-event-date" class="mt-1 w-full bg-black/20 text-white rounded-lg p-3 border-2 border-white/20 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none" style="color-scheme: dark;" required>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="cancelAddEvent" class="px-6 py-2 bg-black/20 text-white/80 font-bold text-sm rounded-full hover:bg-black/40 transition-colors">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-[var(--accent-purple-1)] text-[var(--dark-blue)] font-bold text-sm rounded-full shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200">Add Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-notification" class="fixed bottom-5 right-5 bg-gray-900 text-white py-3 px-6 rounded-full shadow-lg transform translate-y-20 opacity-0 transition-all duration-500 ease-in-out z-50">
+        <p id="toast-message"></p>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            const API_BASE_URL = 'http://localhost:3000';
+
+            // =================================================================
+            // --- 1. INITIAL DATA LOADING & MOCK DATA ---
+            // =================================================================
+            
+            let mockSchedule = {
+                '2025-09-08': [ { id: 'ds', subject: 'Data Structures', time: '09:00 AM - 10:00 AM', room: 'A-101' }, { id: 'os', subject: 'Operating Systems', time: '10:15 AM - 11:15 AM', room: 'C-204' } ],
+                '2025-09-09': [ { id: 'cn', subject: 'Computer Networks', time: '09:00 AM - 10:00 AM', room: 'D-Lab' } ]
+            };
+
+            let mockUpcomingEvents = [
+                { id: 1, date: '2025-09-15', title: 'Mid-Term Exams Start' }, { id: 2, date: '2025-09-22', title: 'Tech Fest "Innovate"' },
+                { id: 3, date: '2025-10-02', title: 'Gandhi Jayanti' }, { id: 4, date: '2025-10-11', title: 'Dussehra' },
+                { id: 5, date: '2025-10-20', title: 'Project Submissions Due' },
+            ];
+
+            const allClassInfo = { 
+                'ds': { subject: 'Data Structures'}, 
+                'os': { subject: 'Operating Systems'}, 
+                'dbms': { subject: 'Database Management'}, 
+                'cn': { subject: 'Computer Networks'},
+                'ml': { subject: 'Machine Learning'},
+                'ai': { subject: 'Artificial Intelligence'},
+                'se': { subject: 'Software Engineering'},
+                'wd': { subject: 'Web Development'},
+                'md': { subject: 'Mobile Development'},
+                'cs': { subject: 'Cybersecurity'},
+                'pm': { subject: 'Project Management'},
+                'math': { subject: 'Mathematics'},
+                'physics': { subject: 'Physics'},
+                'chemistry': { subject: 'Chemistry'},
+                'english': { subject: 'English'},
+                'history': { subject: 'History'}
+            };
+            const classNotes = {};
+            let currentDateKey = new Date('2025-09-08T00:00:00').toISOString().split('T')[0];
+
+            const fetchTeacherInfo = async () => {
+                const nameEl = document.getElementById('teacher-name');
+                const deptEl = document.getElementById('teacher-department');
+                const avatarEl = document.getElementById('teacher-avatar');
+                try {
+                    const response = await fetch('/api/teacher/me');
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const result = await response.json();
+                    if (!result.success) throw new Error(result.message);
+                    
+                    const teacher = result.teacher;
+                    nameEl.textContent = teacher.name;
+                    deptEl.textContent = teacher.department;
+                    avatarEl.src = teacher.avatarUrl;
+                } catch (error) {
+                    console.error("Error fetching teacher info:", error);
+                    // Fallback to mock data if API fails
+                    const mockTeacher = { name: 'Teacher', department: 'Computer Science', avatarUrl: 'https://placehold.co/40x40/d8ccf2/02020a?text=T' };
+                    nameEl.textContent = mockTeacher.name;
+                    deptEl.textContent = mockTeacher.department;
+                    avatarEl.src = mockTeacher.avatarUrl;
+                }
+            };
+            
+            // =================================================================
+            // --- 2. UI RENDERERS & HELPERS ---
+            // =================================================================
+            
+            const showToast = (message) => {
+                const toast = document.getElementById('toast-notification');
+                const toastMessage = document.getElementById('toast-message');
+                toastMessage.textContent = message;
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-0', 'opacity-100');
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                }, 3000);
+            };
+            
+            const classSelects = [ document.getElementById('class-select-notes'), document.getElementById('class-select-records'), document.getElementById('new-class-subject'), document.getElementById('class-select-shared') ];
+            Object.keys(allClassInfo).forEach(id => {
+                const info = allClassInfo[id];
+                const option = new Option(info.subject, id);
+                classSelects.forEach(select => select.add(option.cloneNode(true)));
+            });
+
+            const renderTodaysClasses = async () => {
+                const classListContainer = document.getElementById('classList');
+                const currentDateDisplay = document.getElementById('current-date-display');
+                const today = new Date(currentDateKey + 'T00:00:00');
+                currentDateDisplay.textContent = today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                const todaysClasses = mockSchedule[currentDateKey] || [];
+                classListContainer.innerHTML = '';
+                if (todaysClasses.length === 0) {
+                    classListContainer.innerHTML = `<p class="text-center text-white/70 p-4">No classes scheduled for today.</p>`;
+                    return;
+                }
+                todaysClasses.forEach(cls => {
+                    const classElement = document.createElement('div');
+                    classElement.className = 'p-4 bg-black/20 border border-white/20 rounded-2xl flex flex-col sm:flex-row justify-between items-center hover:bg-black/40 transition-all duration-300';
+                    classElement.innerHTML = `
+                        <div class="flex-grow text-center sm:text-left mb-4 sm:mb-0">
+                            <p class="font-bold text-white">${cls.subject}</p>
+                            <p class="text-sm text-white/70">${cls.time} | Room: ${cls.room}</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                           <button data-class-id="${cls.id}" data-class-subject="${cls.subject}" data-class-date="${currentDateKey}" data-class-time="${cls.time}" class="generate-qr-btn px-5 py-2 bg-[var(--accent-purple-1)] text-[var(--dark-blue)] font-bold text-sm rounded-full shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200 flex items-center space-x-2">
+                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                 <span>QR</span>
+                           </button>
+                           <button data-class-id="${cls.id}" data-class-time="${cls.time}" class="remove-class-btn bg-red-500 text-white w-9 h-9 rounded-full hover:bg-red-600 transition-transform hover:scale-110 flex justify-center items-center">&#10005;</button>
+                        </div>`;
+                    classListContainer.appendChild(classElement);
+                });
+            };
+
+            // --- DATABASE TEAM: Endpoint: GET /api/events ---
+            const renderUpcomingEvents = async () => {
+                const eventsListContainer = document.getElementById('eventsList');
+                // const response = await fetch(`${API_BASE_URL}/api/events`);
+                // mockUpcomingEvents = await response.json(); // Update data from DB
+                eventsListContainer.innerHTML = ''; 
+
+                if (mockUpcomingEvents.length === 0) {
+                    eventsListContainer.innerHTML = `<p class="text-center text-white/70 p-4">No upcoming events.</p>`;
+                    return;
+                }
+                mockUpcomingEvents.sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort events by date
+                mockUpcomingEvents.forEach(event => {
+                    const eventDate = new Date(event.date + 'T00:00:00');
+                    const dateString = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    const [month, day] = dateString.replace(',', '').split(' ');
+                    const eventElement = document.createElement('div');
+                    eventElement.className = 'p-3 bg-black/20 rounded-lg flex items-center justify-between';
+                    eventElement.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                             <div class="flex-shrink-0 text-center bg-black/20 rounded-md p-2 w-16">
+                                 <p class="font-bold text-sm text-white">${month}</p>
+                                 <p class="text-xs text-white/70">${day}</p>
+                             </div>
+                             <div><p class="font-semibold text-white">${event.title}</p></div>
+                        </div>
+                        <button data-event-id="${event.id}" class="remove-event-btn bg-red-500/50 text-white w-7 h-7 rounded-full hover:bg-red-500 transition-all hover:scale-110 flex justify-center items-center text-xs">&#10005;</button>
+                    `;
+                    eventsListContainer.appendChild(eventElement);
+                });
+            };
+
+            // --- DATABASE TEAM: Endpoint: GET /api/leave/requests ---
+            const renderLeaveRequests = async () => {
+                const displayContainer = document.getElementById('leaveRequestsList');
+                
+                try {
+                    const response = await fetch('/api/leave/requests');
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const result = await response.json();
+                    
+                    if (!result.success) {
+                        displayContainer.innerHTML = '<p class="text-center text-red-500 p-4">Failed to load leave requests.</p>';
+                        return;
+                    }
+                    
+                    const leaveRequests = result.requests || [];
+                    
+                    if (leaveRequests.length === 0) {
+                        displayContainer.innerHTML = '<p class="text-center text-white/70 p-4">No pending leave requests.</p>';
+                        return;
+                    }
+                    
+                    const requestsHTML = leaveRequests.map(request => `
+                        <div class="p-3 bg-black/20 rounded-lg">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h4 class="font-semibold text-white">${request.student_name}</h4>
+                                    <p class="text-sm text-white/70">${request.start_date} to ${request.end_date}</p>
+                                </div>
+                                <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(request.status)}">${request.status.charAt(0).toUpperCase() + request.status.slice(1)}</span>
+                            </div>
+                            <p class="text-sm text-white/80 mb-3">${request.reason}</p>
+                            ${request.status === 'pending' ? `
+                                <div class="flex space-x-2">
+                                    <button onclick="approveLeaveRequest(${request.id})" class="px-3 py-1 text-xs bg-green-500/20 text-green-400 rounded hover:bg-green-500/30 transition-colors">Approve</button>
+                                    <button onclick="rejectLeaveRequest(${request.id})" class="px-3 py-1 text-xs bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">Reject</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('');
+                    
+                    displayContainer.innerHTML = requestsHTML;
+                } catch (error) {
+                    console.error('Failed to fetch leave requests:', error);
+                    displayContainer.innerHTML = '<p class="text-center text-red-500 p-4">Error loading leave requests.</p>';
+                }
+            };
+
+            const getStatusColor = (status) => {
+                switch (status) {
+                    case 'pending': return 'bg-yellow-500/20 text-yellow-400';
+                    case 'approved': return 'bg-green-500/20 text-green-400';
+                    case 'rejected': return 'bg-red-500/20 text-red-400';
+                    default: return 'bg-gray-500/20 text-gray-400';
+                }
+            };
+
+            // --- DATABASE TEAM: Endpoint: POST /api/leave/approve/:id ---
+            window.approveLeaveRequest = async (requestId) => {
+                try {
+                    const response = await fetch(`/api/leave/approve/${requestId}`, {
+                        method: 'POST'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok && result.success) {
+                        showToast('Leave request approved successfully!');
+                        renderLeaveRequests(); // Refresh the list
+                    } else {
+                        showToast(result.message || 'Failed to approve leave request.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error approving leave request:', error);
+                    showToast('Network error. Please try again.', 'error');
+                }
+            };
+
+            // --- DATABASE TEAM: Endpoint: POST /api/leave/reject/:id ---
+            window.rejectLeaveRequest = async (requestId) => {
+                try {
+                    const response = await fetch(`/api/leave/reject/${requestId}`, {
+                        method: 'POST'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok && result.success) {
+                        showToast('Leave request rejected successfully!');
+                        renderLeaveRequests(); // Refresh the list
+                    } else {
+                        showToast(result.message || 'Failed to reject leave request.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error rejecting leave request:', error);
+                    showToast('Network error. Please try again.', 'error');
+                }
+            };
+
+            // --- DATABASE TEAM: Endpoint: GET /api/attendance/:classId/:date ---
+            const renderAttendanceRecords = async () => {
+                const classId = document.getElementById('class-select-records').value;
+                const date = document.getElementById('date-select-records').value;
+                const displayContainer = document.getElementById('attendance-display');
+                if (!classId || !date) {
+                    displayContainer.innerHTML = `<p class="text-center text-white/70 p-4">Please select a class and date.</p>`;
+                    return;
+                }
+                displayContainer.innerHTML = `<p class="text-center text-white/70 p-4">Loading records...</p>`;
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/attendance/${classId}/${date}`);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const students = await response.json();
+                    if (!students || students.length === 0) {
+                        displayContainer.innerHTML = `<p class="text-center text-white/70 p-4">No attendance record found.</p>`;
+                        return;
+                    }
+                    const present = students.filter(s => s.status === 'present');
+                    const absent = students.filter(s => s.status === 'absent');
+                    const presentHTML = present.map(s => `<div class="p-2 bg-black/20 rounded-md text-sm">${s.name}</div>`).join('') || '<p class="text-xs text-center text-white/50">No students present.</p>';
+                    const absentHTML = absent.map(s => `<div class="p-2 bg-black/20 rounded-md text-sm">${s.name}</div>`).join('') || '<p class="text-xs text-center text-white/50">All students present.</p>';
+                    displayContainer.innerHTML = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <h3 class="font-semibold text-white mb-2 text-center flex items-center justify-center"><div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>Present (${present.length})</h3>
+                                <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">${presentHTML}</div>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-white mb-2 text-center flex items-center justify-center"><div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>Absent (${absent.length})</h3>
+                                <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">${absentHTML}</div>
+                            </div>
+                        </div>`;
+                } catch (error) {
+                    console.error('Failed to fetch attendance records:', error);
+                    displayContainer.innerHTML = `<p class="text-center text-red-500 p-4">Error loading records.</p>`;
+                }
+            };
+            
+            // --- DATABASE TEAM: Endpoint: GET /api/notes/:classId ---
+            const renderSharedNotes = async () => {
+                const classId = document.getElementById('class-select-shared').value;
+                const displayContainer = document.getElementById('shared-notes-display');
+                if (!classId) {
+                    displayContainer.innerHTML = `<p class="text-center text-white/70 p-4">Select a class to see shared notes.</p>`;
+                    return;
+                }
+                displayContainer.innerHTML = `<p class=\"text-center text-white/70 p-4\">Loading...</p>`;
+                try {
+                    const subject = allClassInfo[classId] ? allClassInfo[classId].subject : '';
+                    const resp = await fetch(`/api/notes/list?class_id=${encodeURIComponent(classId)}&subject=${encodeURIComponent(subject)}&mine=true`);
+                    const result = await resp.json();
+                    if (!resp.ok || !result.success) {
+                        displayContainer.innerHTML = `<p class=\"text-center text-red-500 p-4\">Failed to load notes.</p>`;
+                        return;
+                    }
+                    const notes = result.notes || [];
+                    if (notes.length === 0) {
+                        displayContainer.innerHTML = `<p class=\"text-center text-white/70 p-4\">No notes shared for this subject yet.</p>`;
+                        return;
+                    }
+                    const notesListHTML = notes.map(n => `
+                        <a class=\"p-2 bg-black/20 rounded-md text-sm flex items-center gap-2 hover:bg-black/30 transition\" href=\"/api/notes/file/${n.id}\" target=\"_blank\">
+                            <svg class=\"w-4 h-4 flex-shrink-0\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z\"></path></svg>
+                            <span class=\"truncate\">${n.file_name}</span>
+                            <span class=\"ml-auto text-white/50 text-xs\">${new Date(n.uploaded_at).toLocaleString()}</span>
+                        </a>`).join('');
+                    displayContainer.innerHTML = `<div class=\"space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2\">${notesListHTML}</div>`;
+                } catch (e) {
+                    console.error('Failed to load shared notes', e);
+                    displayContainer.innerHTML = `<p class=\"text-center text-red-500 p-4\">Error loading notes.</p>`;
+                }
+            };
+
+            // =================================================================
+            // --- 3. FEATURE LOGIC & EVENT LISTENERS ---
+            // =================================================================
+
+            // --- DATABASE TEAM: Endpoint: GET /api/attendance-analytics ---
+            const renderAttendanceChart = async () => {
+                const canvas = document.getElementById('attendanceChart');
+                const ctx = canvas.getContext('2d');
+
+                const dangerGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                dangerGradient.addColorStop(0, '#E5989B');
+                dangerGradient.addColorStop(1, '#c27a7d');
+
+                const moderateGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                moderateGradient.addColorStop(0, '#E0C080');
+                moderateGradient.addColorStop(1, '#b39b66');
+
+                const safeGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                safeGradient.addColorStop(0, '#6D9F91');
+                safeGradient.addColorStop(1, '#547c70');
+
+                window.attendanceChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: { datasets: [{ data: [0, 0, 100], backgroundColor: [dangerGradient, moderateGradient, safeGradient], borderWidth: 0, hoverOffset: 15 }] },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
+                });
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/attendance-analytics`);
+                    if (!response.ok) throw new Error(`HTTP error`);
+                    const data = await response.json();
+                    window.attendanceChart.data.datasets[0].data = [data.catchUp, data.highRisk, data.safe];
+                    window.attendanceChart.update();
+                } catch (error) { console.error('Failed to fetch attendance analytics:', error); }
+            };
+
+            // QR Code Modal Logic
+            const qrModal = document.getElementById('qrModal');
+            const closeModalBtn = document.getElementById('closeModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const qrContainer = document.getElementById('qrcode-container');
+            const qrTimerText = document.getElementById('qr-timer-text');
+            const qrTimeShownEl = document.getElementById('qr-time-shown');
+            let qrIntervals = {};
+            let currentModalInfo = null;
+            let displayTimerInterval = null;
+
+            const generateAndShowQR = (classId, classDate) => {
+                qrContainer.innerHTML = '';
+                const uniqueData = `${classId}|${classDate}|${Date.now()}`;
+                new QRCode(qrContainer, { text: uniqueData, width: 256, height: 256, colorDark: "#000", colorLight: "#fff", correctLevel: QRCode.CorrectLevel.H });
+            };
+            
+            const openQRModal = (classId, classSubject, classDate, classTime) => {
+                const intervalKey = `${classId}-${classDate}-${classTime}`;
+                if (qrIntervals[intervalKey]) clearInterval(qrIntervals[intervalKey]);
+                if (displayTimerInterval) clearInterval(displayTimerInterval);
+                currentModalInfo = { classId, classDate, classTime };
+                const totalChanges = 15;
+                let currentChange = 0;
+                modalTitle.textContent = `Scan for ${classSubject}`;
+
+                const generationCycle = () => {
+                    if (currentChange >= totalChanges) {
+                        clearInterval(qrIntervals[intervalKey]);
+                        clearInterval(displayTimerInterval);
+                        qrContainer.innerHTML = '<div class="flex flex-col items-center justify-center h-full"><svg class="w-16 h-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><p class="text-xl font-semibold text-green-400 mt-4">Generation Complete!</p></div>';
+                        qrTimerText.textContent = `Finished after ${totalChanges} updates.`;
+                        qrTimeShownEl.textContent = `Session ended.`;
+                        return;
+                    }
+                    currentChange++;
+                    generateAndShowQR(classId, classDate);
+                    qrTimerText.textContent = `Code ${currentChange} of ${totalChanges}. Refreshes in 6s.`;
+                    
+                    if (displayTimerInterval) clearInterval(displayTimerInterval);
+                    let secondsShown = 0;
+                    qrTimeShownEl.textContent = `Time shown: 0s`;
+                    displayTimerInterval = setInterval(() => {
+                        secondsShown++;
+                        qrTimeShownEl.textContent = `Time shown: ${secondsShown}s`;
+                    }, 1000);
+                };
+                qrModal.classList.remove('hidden');
+                qrModal.classList.add('flex');
+                generationCycle();
+                qrIntervals[intervalKey] = setInterval(generationCycle, 6000);
+            };
+
+            const closeQRModal = () => {
+                if (currentModalInfo) {
+                    const { classId, classDate, classTime } = currentModalInfo;
+                    const intervalKey = `${classId}-${classDate}-${classTime}`;
+                    if (qrIntervals[intervalKey]) {
+                       clearInterval(qrIntervals[intervalKey]);
+                       qrIntervals[intervalKey] = null;
+                    }
+                }
+                if (displayTimerInterval) { clearInterval(displayTimerInterval); displayTimerInterval = null; }
+                qrModal.classList.add('hidden');
+                qrModal.classList.remove('flex');
+                currentModalInfo = null;
+            };
+            
+            // Add Class Modal Logic
+            const addClassModal = document.getElementById('addClassModal');
+            const addClassBtn = document.getElementById('add-class-btn');
+            const cancelAddClassBtn = document.getElementById('cancelAddClass');
+            const addClassForm = document.getElementById('add-class-form');
+
+            addClassBtn.addEventListener('click', () => { addClassModal.classList.remove('hidden'); addClassModal.classList.add('flex'); });
+            const closeAddClassModal = () => { addClassForm.reset(); addClassModal.classList.add('hidden'); addClassModal.classList.remove('flex'); };
+            cancelAddClassBtn.addEventListener('click', closeAddClassModal);
+            addClassModal.addEventListener('click', (e) => { if (e.target === addClassModal) closeAddClassModal(); });
+            
+            // Add Event Modal Logic
+            const addEventModal = document.getElementById('addEventModal');
+            const addEventBtn = document.getElementById('add-event-btn');
+            const cancelAddEventBtn = document.getElementById('cancelAddEvent');
+            const addEventForm = document.getElementById('add-event-form');
+            
+            addEventBtn.addEventListener('click', () => { addEventModal.classList.remove('hidden'); addEventModal.classList.add('flex'); });
+            const closeAddEventModal = () => { addEventForm.reset(); addEventModal.classList.add('hidden'); addEventModal.classList.remove('flex'); };
+            cancelAddEventBtn.addEventListener('click', closeAddEventModal);
+            addEventModal.addEventListener('click', (e) => { if (e.target === addEventModal) closeAddEventModal(); });
+
+            // --- DATABASE TEAM: Endpoint: POST /api/classes ---
+            addClassForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const subjectId = document.getElementById('new-class-subject').value;
+                const time_slot = document.getElementById('new-class-time').value;
+                const room = document.getElementById('new-class-room').value;
+                
+                if (!subjectId || !time_slot || !room) { 
+                    showToast('Please fill out all fields.'); 
+                    return; 
+                }
+                
+                // Get full subject name from the ID
+                const subject = allClassInfo[subjectId] ? allClassInfo[subjectId].subject : subjectId;
+                
+                try {
+                    // Call API to add class to database
+                    const response = await fetch('/api/teacher/classes/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            subject: subject,
+                            time_slot: time_slot,
+                            room: room,
+                            date: currentDateKey
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Update local mock data for immediate UI update
+                        if (!mockSchedule[currentDateKey]) { 
+                            mockSchedule[currentDateKey] = []; 
+                        }
+                        mockSchedule[currentDateKey].push({
+                            id: result.class_id,
+                            subject: subject,
+                            time: time_slot,
+                            room: room
+                        });
+                        
+                        showToast(`✅ Class added successfully! All students enrolled.`);
+                        closeAddClassModal();
+                        renderTodaysClasses();
+                        
+                        // Notify that students should refresh their dashboard
+                        console.log('📢 New class added - students should refresh their dashboard');
+                    } else {
+                        showToast(`❌ Error: ${result.message}`);
+                    }
+                } catch (error) {
+                    console.error('Error adding class:', error);
+                    showToast('Error adding class. Please try again.');
+                }
+            });
+            
+            // --- DATABASE TEAM: Endpoint: POST /api/events ---
+            addEventForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const newEventData = { id: Date.now(), title: document.getElementById('new-event-title').value, date: document.getElementById('new-event-date').value };
+                if (!newEventData.title || !newEventData.date) { showToast('Please fill out all fields.'); return; }
+                mockUpcomingEvents.push(newEventData);
+                showToast('Event added successfully!');
+                closeAddEventModal();
+                renderUpcomingEvents();
+            });
+
+            // --- DATABASE TEAM: Endpoint: DELETE /api/classes/:id?date=...&time=... ---
+            document.getElementById('classList').addEventListener('click', async (e) => {
+                const button = e.target.closest('button');
+                if (!button) return;
+                const { classId, classSubject, classDate, classTime } = button.dataset;
+                if (button.classList.contains('generate-qr-btn')) {
+                    openQRModal(classId, classSubject, classDate, classTime);
+                } else if (button.classList.contains('remove-class-btn')) {
+                    if (confirm('Are you sure you want to remove this class?')) {
+                        // Call API to remove class from database
+                        try {
+                            const response = await fetch('/api/teacher/classes/remove', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    class_id: classId
+                                })
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (result.success) {
+                                // Update local mock data
+                                const schedule = mockSchedule[currentDateKey];
+                                if(schedule) {
+                                    const classIndex = schedule.findIndex(c => c.id === classId && c.time === classTime);
+                                    if (classIndex > -1) { 
+                                        schedule.splice(classIndex, 1); 
+                                        showToast('✅ Class removed successfully!'); 
+                                        renderTodaysClasses(); 
+                                    }
+                                }
+                                
+                                // Notify that students should refresh their dashboard
+                                console.log('📢 Class removed - students should refresh their dashboard');
+                            } else {
+                                showToast(`❌ Error: ${result.message}`);
+                            }
+                        } catch (error) {
+                            console.error('Error removing class:', error);
+                            showToast('Error removing class. Please try again.');
+                        }
+                    }
+                }
+            });
+            
+             // --- DATABASE TEAM: Endpoint: DELETE /api/events/:id ---
+            document.getElementById('eventsList').addEventListener('click', async (e) => {
+                const button = e.target.closest('.remove-event-btn');
+                if (!button) return;
+                const eventId = parseInt(button.dataset.eventId);
+                if (confirm('Are you sure you want to remove this event?')) {
+                    mockUpcomingEvents = mockUpcomingEvents.filter(event => event.id !== eventId);
+                    showToast('Event removed successfully!');
+                    renderUpcomingEvents();
+                }
+            });
+
+            closeModalBtn.addEventListener('click', closeQRModal);
+            qrModal.addEventListener('click', (e) => { if (e.target === qrModal) closeQRModal(); });
+
+            // --- DATABASE TEAM: Endpoint: POST /api/leaves/:id/:action ---
+            document.getElementById('leaveRequestsList').addEventListener('click', async (e) => {
+                const target = e.target.closest('.leave-action-btn');
+                if (!target) return;
+                const { requestId, action } = target.dataset;
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/leaves/${requestId}/${action}`, { method: 'POST' });
+                    if (!response.ok) throw new Error('Action failed');
+                    const result = await response.json();
+                    showToast(`Leave request ${action}d successfully.`);
+                    renderLeaveRequests();
+                } catch (error) { console.error('Failed to process leave request:', error); showToast('An error occurred.'); }
+            });
+
+            // --- DATABASE TEAM: Endpoint: POST /api/notes/upload ---
+            document.getElementById('notes-upload').addEventListener('change', async (e) => {
+                const selectedClassId = document.getElementById('class-select-notes').value;
+                if (!selectedClassId) { showToast('Please select a class first.'); e.target.value = ''; return; }
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    const fileUploadStatus = document.getElementById('file-upload-status');
+                    try {
+                        const formData = new FormData();
+                        // Use subject name for now based on mapping
+                        const subject = allClassInfo[selectedClassId] ? allClassInfo[selectedClassId].subject : selectedClassId;
+                        formData.append('class_id', selectedClassId);
+                        formData.append('subject', subject);
+                        formData.append('file', file);
+                        const resp = await fetch('/api/notes/upload', { method: 'POST', body: formData });
+                        const result = await resp.json();
+                        if (resp.ok && result.success) {
+                            if (!classNotes[selectedClassId]) classNotes[selectedClassId] = [];
+                            classNotes[selectedClassId].push(file.name);
+                            showToast(`Uploaded "${file.name}" successfully!`);
+                            fileUploadStatus.textContent = `Uploaded: ${file.name}`;
+                            setTimeout(() => { fileUploadStatus.textContent = '' }, 2500);
+                            renderSharedNotes();
+                        } else {
+                            showToast(result.message || 'Upload failed');
+                        }
+                    } catch (err) {
+                        console.error('Upload error', err);
+                        showToast('Network error while uploading');
+                    } finally {
+                        e.target.value = '';
+                    }
+                }
+            });
+
+            document.getElementById('class-select-records').addEventListener('change', renderAttendanceRecords);
+            document.getElementById('date-select-records').addEventListener('change', renderAttendanceRecords);
+            document.getElementById('class-select-shared').addEventListener('change', renderSharedNotes);
+
+             // =================================================================
+             // --- 4. LOGOUT FUNCTIONALITY ---
+             // =================================================================
+             
+             window.logout = async () => {
+                if (confirm('Are you sure you want to logout?')) {
+                    try {
+                        // Update logout button with loading state
+                        const logoutButton = document.querySelector('button[onclick="logout()"]');
+                        if (logoutButton) {
+                            const originalHTML = logoutButton.innerHTML;
+                            logoutButton.innerHTML = `
+                                <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-dashoffset="32">
+                                        <animate attributeName="stroke-dashoffset" dur="2s" values="32;0" repeatCount="indefinite"/>
+                                    </circle>
+                                </svg>
+                                <span class="hidden sm:inline ml-2">Logging out...</span>
+                            `;
+                        }
+                        
+                        // Clear any stored client-side session data
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        
+                        // Clear any cached data
+                        if ('caches' in window) {
+                            caches.keys().then(names => {
+                                names.forEach(name => {
+                                    caches.delete(name);
+                                });
+                            });
+                        }
+                        
+                        // Show logout message
+                        showToast('Logging out... Ending session.');
+                        
+                        // Call logout API to end server-side session
+                        const response = await fetch('/api/logout', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            credentials: 'same-origin' // Include session cookies
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            console.log('✅ Session terminated successfully:', result.message);
+                            showToast('✅ Session ended successfully!');
+                        } else {
+                            console.warn('⚠️ Logout API returned error:', result.message);
+                            showToast('⚠️ Session ended with warnings.');
+                        }
+                        
+                    } catch (error) {
+                        console.error('❌ Error during logout API call:', error);
+                        showToast('⚠️ Network error during logout, but continuing...');
+                        // Continue with logout even if API call fails
+                    } finally {
+                        // Force clear any remaining session data and cookies
+                        document.cookie.split(";").forEach(function(c) { 
+                            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                        });
+                        
+                        // Always redirect to main login dashboard regardless of API response
+                        // Use replace to prevent back button from returning to dashboard
+                        setTimeout(() => {
+                            window.location.replace('/');
+                        }, 1500);
+                    }
+                }
+             };
+
+             // =================================================================
+             // --- 5. INITIAL PAGE LOAD ---
+             // =================================================================
+             fetchTeacherInfo();
+             renderTodaysClasses();
+             renderUpcomingEvents();
+             renderLeaveRequests();
+             renderSharedNotes();
+             renderAttendanceChart();
+
+        });
+    </script>
+</body>
+</html>
+

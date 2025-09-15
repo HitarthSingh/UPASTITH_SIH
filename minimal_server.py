@@ -3,12 +3,17 @@ from flask_cors import CORS
 import os
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 import sqlite3
 import random
 import secrets
 from datetime import datetime, timedelta
 from face_utils import FaceRecognitionSystem
-from enhanced_face_utils import EnhancedFaceRecognitionSystem
+try:
+    from enhanced_face_utils import EnhancedFaceRecognitionSystem
+except Exception:
+    EnhancedFaceRecognitionSystem = None
+
 from db_leaves import init_leave_db
 import json
 
@@ -27,7 +32,24 @@ CORS(app, supports_credentials=True)
 
 # Initialize face recognition systems
 face_system = FaceRecognitionSystem()  # Legacy system
-enhanced_face_system = EnhancedFaceRecognitionSystem()  # Enhanced with liveness detection
+if EnhancedFaceRecognitionSystem is not None:
+    try:
+        enhanced_face_system = EnhancedFaceRecognitionSystem()  # Enhanced with liveness detection
+    except Exception:
+        # Instantiate stub on error
+        class _EnhancedStub:
+            def check_liveness_model(self):
+                return False
+            def get_attendance_records(self, date=None):
+                return {"success": True, "records": []}
+        enhanced_face_system = _EnhancedStub()
+else:
+    class _EnhancedStub:
+        def check_liveness_model(self):
+            return False
+        def get_attendance_records(self, date=None):
+            return {"success": True, "records": []}
+    enhanced_face_system = _EnhancedStub()
 
 # Session validation middleware
 def require_login(user_type=None):
@@ -558,6 +580,47 @@ def create_sample_classes():
     except Exception as e:
         print(f"Error initializing classes database: {e}")
 
+# Notes database functions
+def init_notes_db(db_path: str = 'notes.db') -> None:
+    """Create the notes database and required tables if they don't exist."""
+    conn = sqlite3.connect(db_path)
+    try:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS notes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                class_id TEXT NOT NULL,
+                subject TEXT NOT NULL,
+                teacher_id TEXT,
+                teacher_name TEXT,
+                file_name TEXT NOT NULL,
+                file_path TEXT NOT NULL,
+                uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS notes_views (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                note_id INTEGER NOT NULL,
+                student_id TEXT NOT NULL,
+                viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(note_id, student_id)
+            )
+            """
+        )
+
+        conn.commit()
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
 def create_sample_leave_requests():
     """Create sample leave requests for testing"""
     try:
@@ -628,6 +691,7 @@ create_sample_attendance_users()
 init_classes_db()
 create_sample_classes()
 create_sample_enrollments()
+init_notes_db()
 
 @app.route("/api/test", methods=["GET", "POST"])
 def test_endpoint():
@@ -1253,6 +1317,218 @@ def get_current_teacher():
         })
         
     except Exception as e:
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
+
+# ========= Notes API =========
+
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), 'uploads')
+if not os.path.isdir(UPLOAD_DIR):
+    try:
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
+    except Exception as _e:
+        print(f"Warning: could not create uploads directory: {_e}")
+
+def _get_student_identity_from_session():
+    conn = sqlite3.connect('authentication.db')
+    try:
+        cur = conn.cursor()
+        cur.execute('SELECT student_id, full_name FROM users WHERE id = ?', (session['user_id'],))
+        row = cur.fetchone()
+        if row:
+            return row[0], row[1]
+        return None, None
+    finally:
+        conn.close()
+
+@app.route('/api/notes/upload', methods=['POST'])
+def upload_notes():
+    """Teacher uploads a file for a class/subject."""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'message': 'Please log in first'}), 401
+        # Fetch teacher info
+        conn = sqlite3.connect('authentication.db')
+        cur = conn.cursor()
+        cur.execute('SELECT teacher_id, full_name, username FROM users WHERE id = ? AND user_type = "teacher"', (session['user_id'],))
+        teacher = cur.fetchone()
+        conn.close()
+        if not teacher:
+            return jsonify({'success': False, 'message': 'Teacher access required'}), 403
+
+        subject = request.form.get('subject') or request.form.get('class_id') or ''
+        class_id = request.form.get('class_id') or subject
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'message': 'No file provided'}), 400
+        file = request.files['file']
+        if not file or file.filename == '':
+            return jsonify({'success': False, 'message': 'Empty filename'}), 400
+
+        safe_name = secure_filename(file.filename)
+        saved_path = os.path.join(UPLOAD_DIR, safe_name)
+        # Ensure unique filename
+        base, ext = os.path.splitext(safe_name)
+        counter = 1
+        while os.path.exists(saved_path):
+            safe_name = f"{base}_{counter}{ext}"
+            saved_path = os.path.join(UPLOAD_DIR, safe_name)
+            counter += 1
+        file.save(saved_path)
+
+        # Insert record
+        conn = sqlite3.connect('notes.db')
+        cur = conn.cursor()
+        cur.execute(
+            'INSERT INTO notes (class_id, subject, teacher_id, teacher_name, file_name, file_path) VALUES (?, ?, ?, ?, ?, ?)',
+            (class_id, subject or class_id, teacher[0] or '', teacher[1] or '', safe_name, saved_path)
+        )
+        note_id = cur.lastrowid
+        conn.commit()
+        conn.close()
+
+        return jsonify({'success': True, 'message': 'File uploaded', 'note_id': note_id, 'file_name': safe_name})
+    except Exception as e:
+        print(f"Error in upload_notes: {e}")
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
+
+@app.route('/api/notes/unseen', methods=['GET'])
+def get_unseen_notes():
+    """Get notes not yet viewed by the logged-in student. Optional filter by subject/class_id."""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'message': 'Please log in first'}), 401
+        student_id, student_name = _get_student_identity_from_session()
+        if not student_id:
+            return jsonify({'success': False, 'message': 'Student not found'}), 404
+        subject = request.args.get('subject')
+        class_id = request.args.get('class_id')
+
+        conn = sqlite3.connect('notes.db')
+        cur = conn.cursor()
+        query = (
+            "SELECT id, class_id, subject, teacher_name, file_name, uploaded_at FROM notes "
+            "WHERE id NOT IN (SELECT note_id FROM notes_views WHERE student_id = ?)"
+        )
+        params = [student_id]
+        if subject:
+            query += " AND subject = ?"
+            params.append(subject)
+        if class_id:
+            query += " AND class_id = ?"
+            params.append(class_id)
+        query += " ORDER BY uploaded_at DESC"
+        cur.execute(query, tuple(params))
+        rows = cur.fetchall()
+        conn.close()
+
+        notes = [
+            {
+                'id': r[0],
+                'class_id': r[1],
+                'subject': r[2],
+                'teacher_name': r[3],
+                'file_name': r[4],
+                'uploaded_at': r[5]
+            } for r in rows
+        ]
+        return jsonify({'success': True, 'notes': notes})
+    except Exception as e:
+        print(f"Error in get_unseen_notes: {e}")
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
+
+@app.route('/api/notes/list', methods=['GET'])
+def list_notes():
+    """List notes, optionally filtered by class_id/subject. If mine=true and user is teacher, only their uploads."""
+    try:
+        class_id = request.args.get('class_id')
+        subject = request.args.get('subject')
+        mine = request.args.get('mine') in ['1', 'true', 'True']
+
+        teacher_id = None
+        if mine and 'user_id' in session and session.get('user_type') == 'teacher':
+            conn_auth = sqlite3.connect('authentication.db')
+            cur_auth = conn_auth.cursor()
+            cur_auth.execute('SELECT teacher_id, username FROM users WHERE id = ?', (session['user_id'],))
+            t = cur_auth.fetchone()
+            conn_auth.close()
+            if t:
+                teacher_id = t[0] if t[0] else ('TCH001' if t[1] == 'teacher1' else 'TCH002' if t[1] == 'teacher2' else None)
+
+        conn = sqlite3.connect('notes.db')
+        cur = conn.cursor()
+        query = "SELECT id, class_id, subject, teacher_name, teacher_id, file_name, uploaded_at FROM notes WHERE 1=1"
+        params = []
+        if class_id:
+            query += " AND class_id = ?"
+            params.append(class_id)
+        if subject:
+            query += " AND subject = ?"
+            params.append(subject)
+        if teacher_id:
+            query += " AND teacher_id = ?"
+            params.append(teacher_id)
+        query += " ORDER BY uploaded_at DESC"
+        cur.execute(query, tuple(params))
+        rows = cur.fetchall()
+        conn.close()
+
+        notes = [
+            {
+                'id': r[0],
+                'class_id': r[1],
+                'subject': r[2],
+                'teacher_name': r[3],
+                'teacher_id': r[4],
+                'file_name': r[5],
+                'uploaded_at': r[6]
+            } for r in rows
+        ]
+        return jsonify({'success': True, 'notes': notes})
+    except Exception as e:
+        print(f"Error in list_notes: {e}")
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
+
+@app.route('/api/notes/mark_viewed', methods=['POST'])
+def mark_notes_viewed():
+    """Mark provided note IDs as viewed for the current student."""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'message': 'Please log in first'}), 401
+        data = request.get_json() or {}
+        note_ids = data.get('note_ids', [])
+        if not note_ids:
+            return jsonify({'success': False, 'message': 'note_ids required'}), 400
+        student_id, _ = _get_student_identity_from_session()
+        if not student_id:
+            return jsonify({'success': False, 'message': 'Student not found'}), 404
+        conn = sqlite3.connect('notes.db')
+        cur = conn.cursor()
+        for nid in note_ids:
+            try:
+                cur.execute('INSERT OR IGNORE INTO notes_views (note_id, student_id) VALUES (?, ?)', (nid, student_id))
+            except Exception:
+                pass
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'marked': len(note_ids)})
+    except Exception as e:
+        print(f"Error in mark_notes_viewed: {e}")
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
+
+@app.route('/api/notes/file/<int:note_id>', methods=['GET'])
+def get_note_file(note_id: int):
+    """Serve a previously uploaded note file by id."""
+    try:
+        conn = sqlite3.connect('notes.db')
+        cur = conn.cursor()
+        cur.execute('SELECT file_name FROM notes WHERE id = ?', (note_id,))
+        row = cur.fetchone()
+        conn.close()
+        if not row:
+            return jsonify({'success': False, 'message': 'Note not found'}), 404
+        file_name = row[0]
+        return send_from_directory(UPLOAD_DIR, file_name, as_attachment=False)
+    except Exception as e:
+        print(f"Error in get_note_file: {e}")
         return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
 
 @app.route('/api/student/me', methods=['GET'])
@@ -2121,6 +2397,7 @@ if __name__ == "__main__":
     init_attendance_db()
     init_leave_db('leaves.db')
     init_classes_db()
+    init_notes_db()
     
     # Create sample data
     print("Creating sample data...")
