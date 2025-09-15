@@ -7,19 +7,19 @@
     <title>Automated Attendance - Teacher Login</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Three.js for 3D animation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <link href="https://fonts.cdnfonts.com/css/quincy-cf" rel="stylesheet">
+
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <style>
         :root {
-            --logo-height: 200px;
-            --nav-height: 105px;
             --dark-blue: #02020a;
             --light-purple: #D8CCF2;
             --accent-purple-1: #8686AC;
@@ -27,16 +27,8 @@
             --accent-purple-3: #272757;
         }
 
-        .logo-img {
-            display: block;
-            height: var(--logo-height);
-            width: auto;
-            object-fit: contain;
-        }
-
         nav {
-            height: var(--nav-height);
-            min-height: var(--nav-height);
+           height: 80px;
         }
 
         body {
@@ -72,7 +64,23 @@
             border: 1px solid rgba(134, 134, 172, 0.2);
         }
 
-        /* Mobile menu styles */
+        #typing-title {
+            font-family: 'Quincy CF', serif;
+        }
+
+        #typing-title::after {
+            content: '|';
+            display: inline-block;
+            animation: blink 0.7s infinite;
+            color: var(--light-purple);
+            font-weight: bold;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
         .mobile-menu {
             transform: translateX(100%);
             transition: transform 0.3s ease-in-out;
@@ -80,6 +88,17 @@
         .mobile-menu.open {
             transform: translateX(0);
         }
+
+        /* MODIFIED: Updated custom class for button glow effect */
+        .btn-glow {
+            transition: all 0.3s ease-in-out;
+        }
+        .btn-glow:hover {
+            background-color: var(--light-purple); /* Change background on hover */
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(216, 204, 242, 0.4); /* Glow with light-purple color */
+        }
+
     </style>
 </head>
 
@@ -98,7 +117,7 @@
                 <a href="/aboutus" class="font-semibold opacity-80 hover:opacity-100 transition-opacity">About Us</a>
             </div>
             <a href="/"
-                class="hidden md:block bg-[var(--accent-purple-1)] text-[var(--dark-blue)] py-2 px-5 rounded-full font-bold text-sm shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200">
+                class="btn-glow hidden md:block bg-[var(--accent-purple-1)] text-[var(--dark-blue)] py-2 px-5 rounded-full font-bold text-sm shadow-lg">
                 STUDENT LOGIN
             </a>
             <button id="mobile-menu-button" class="md:hidden text-2xl p-2 focus:outline-none">
@@ -124,10 +143,11 @@
 
     <main>
         <section class="min-h-screen flex items-center justify-center p-5 pt-24 md:pt-8 relative">
-            <!-- 3D Animation Container -->
             <div id="three-container" class="absolute top-0 left-0 w-full h-full z-0"></div>
             
             <div class="w-full max-w-sm text-center z-20">
+                <h1 id="typing-title" class="text-6xl md:text-7xl font-bold mb-8 h-24"></h1>
+
                 <div
                     class="glass-card rounded-2xl shadow-xl shadow-black/10 p-8">
                     <div class="mb-8 text-center">
@@ -171,7 +191,7 @@
                         </div>
 
                         <button type="submit"
-                            class="w-full bg-[var(--accent-purple-1)] text-[var(--dark-blue)] py-3 rounded-xl font-bold text-base shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200">
+                            class="btn-glow w-full bg-[var(--accent-purple-1)] text-[var(--dark-blue)] py-3 rounded-xl font-bold text-base shadow-lg">
                             SIGN IN
                         </button>
                     </form>
@@ -180,34 +200,62 @@
         </section>
     </main>
     <script>
-        // Show/Hide Password functionality
-        function togglePasswordVisibility() {
-            const passwordInput = document.getElementById('password');
-            const eyeIcon = document.getElementById('eyeIcon');
-            
-            if (passwordInput && eyeIcon) {
-                if (passwordInput.type === 'password') {
-                    passwordInput.type = 'text';
-                    eyeIcon.classList.remove('fa-eye');
-                    eyeIcon.classList.add('fa-eye-slash');
-                } else {
-                    passwordInput.type = 'password';
-                    eyeIcon.classList.remove('fa-eye-slash');
-                    eyeIcon.classList.add('fa-eye');
+        document.addEventListener('DOMContentLoaded', () => {
+            // Typewriter effect logic
+            function typewriterEffect() {
+                const titleElement = document.getElementById('typing-title');
+                if (!titleElement) return;
+
+                const textToType = "UPASTITH";
+                let charIndex = 0;
+                let isDeleting = false;
+
+                function type() {
+                    const currentText = textToType.substring(0, charIndex);
+                    titleElement.textContent = currentText;
+                    titleElement.style.minHeight = titleElement.scrollHeight + 'px';
+
+                    if (!isDeleting && charIndex < textToType.length) {
+                        charIndex++;
+                        setTimeout(type, 150);
+                    } else if (isDeleting && charIndex > 0) {
+                        charIndex--;
+                        setTimeout(type, 100);
+                    } else if (!isDeleting && charIndex === textToType.length) {
+                        isDeleting = true;
+                        setTimeout(type, 2000);
+                    } else if (isDeleting && charIndex === 0) {
+                        isDeleting = false;
+                        setTimeout(type, 500);
+                    }
+                }
+                type();
+            }
+            typewriterEffect();
+
+            // Show/Hide Password functionality
+            function togglePasswordVisibility() {
+                const passwordInput = document.getElementById('password');
+                const eyeIcon = document.getElementById('eyeIcon');
+                
+                if (passwordInput && eyeIcon) {
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        eyeIcon.classList.remove('fa-eye');
+                        eyeIcon.classList.add('fa-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        eyeIcon.classList.remove('fa-eye-slash');
+                        eyeIcon.classList.add('fa-eye');
+                    }
                 }
             }
-        }
-        
-        document.addEventListener('DOMContentLoaded', function() {
+            
             const toggleButton = document.getElementById('togglePassword');
             if (toggleButton) {
                 toggleButton.addEventListener('click', togglePasswordVisibility);
-                console.log('Password toggle button initialized');
-            } else {
-                console.error('Toggle button not found');
             }
-        });
-        document.addEventListener('DOMContentLoaded', () => {
+            
             // Mobile menu logic
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const closeMenuButton = document.getElementById('close-menu-button');
@@ -304,4 +352,3 @@
 </body>
 
 </html>
-
