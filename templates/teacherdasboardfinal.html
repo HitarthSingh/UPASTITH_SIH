@@ -615,24 +615,38 @@
             };
             
             // --- DATABASE TEAM: Endpoint: GET /api/notes/:classId ---
-            const renderSharedNotes = () => {
+            const renderSharedNotes = async () => {
                 const classId = document.getElementById('class-select-shared').value;
                 const displayContainer = document.getElementById('shared-notes-display');
                 if (!classId) {
                     displayContainer.innerHTML = `<p class="text-center text-white/70 p-4">Select a class to see shared notes.</p>`;
                     return;
                 }
-                const notes = classNotes[classId]; // Replace with API call.
-                if (!notes || notes.length === 0) {
-                    displayContainer.innerHTML = `<p class="text-center text-white/70 p-4">No notes shared for this subject yet.</p>`;
-                    return;
+                displayContainer.innerHTML = `<p class=\"text-center text-white/70 p-4\">Loading...</p>`;
+                try {
+                    const subject = allClassInfo[classId] ? allClassInfo[classId].subject : '';
+                    const resp = await fetch(`/api/notes/list?class_id=${encodeURIComponent(classId)}&subject=${encodeURIComponent(subject)}&mine=true`);
+                    const result = await resp.json();
+                    if (!resp.ok || !result.success) {
+                        displayContainer.innerHTML = `<p class=\"text-center text-red-500 p-4\">Failed to load notes.</p>`;
+                        return;
+                    }
+                    const notes = result.notes || [];
+                    if (notes.length === 0) {
+                        displayContainer.innerHTML = `<p class=\"text-center text-white/70 p-4\">No notes shared for this subject yet.</p>`;
+                        return;
+                    }
+                    const notesListHTML = notes.map(n => `
+                        <a class=\"p-2 bg-black/20 rounded-md text-sm flex items-center gap-2 hover:bg-black/30 transition\" href=\"/api/notes/file/${n.id}\" target=\"_blank\">
+                            <svg class=\"w-4 h-4 flex-shrink-0\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z\"></path></svg>
+                            <span class=\"truncate\">${n.file_name}</span>
+                            <span class=\"ml-auto text-white/50 text-xs\">${new Date(n.uploaded_at).toLocaleString()}</span>
+                        </a>`).join('');
+                    displayContainer.innerHTML = `<div class=\"space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2\">${notesListHTML}</div>`;
+                } catch (e) {
+                    console.error('Failed to load shared notes', e);
+                    displayContainer.innerHTML = `<p class=\"text-center text-red-500 p-4\">Error loading notes.</p>`;
                 }
-                const notesListHTML = notes.map(note => `
-                    <div class="p-2 bg-black/20 rounded-md text-sm flex items-center gap-2">
-                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        <span class="truncate">${note}</span>
-                    </div>`).join('');
-                displayContainer.innerHTML = `<div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">${notesListHTML}</div>`;
             };
 
             // =================================================================
@@ -908,19 +922,37 @@
             });
 
             // --- DATABASE TEAM: Endpoint: POST /api/notes/upload ---
-            document.getElementById('notes-upload').addEventListener('change', (e) => {
+            document.getElementById('notes-upload').addEventListener('change', async (e) => {
                 const selectedClassId = document.getElementById('class-select-notes').value;
                 if (!selectedClassId) { showToast('Please select a class first.'); e.target.value = ''; return; }
                 if (e.target.files.length > 0) {
                     const file = e.target.files[0];
                     const fileUploadStatus = document.getElementById('file-upload-status');
-                    if (!classNotes[selectedClassId]) classNotes[selectedClassId] = [];
-                    classNotes[selectedClassId].push(file.name);
-                    showToast(`Uploaded "${file.name}" successfully!`);
-                    fileUploadStatus.textContent = `Uploaded: ${file.name}`;
-                    setTimeout(() => { fileUploadStatus.textContent = '' }, 2500);
-                    renderSharedNotes();
-                    e.target.value = '';
+                    try {
+                        const formData = new FormData();
+                        // Use subject name for now based on mapping
+                        const subject = allClassInfo[selectedClassId] ? allClassInfo[selectedClassId].subject : selectedClassId;
+                        formData.append('class_id', selectedClassId);
+                        formData.append('subject', subject);
+                        formData.append('file', file);
+                        const resp = await fetch('/api/notes/upload', { method: 'POST', body: formData });
+                        const result = await resp.json();
+                        if (resp.ok && result.success) {
+                            if (!classNotes[selectedClassId]) classNotes[selectedClassId] = [];
+                            classNotes[selectedClassId].push(file.name);
+                            showToast(`Uploaded "${file.name}" successfully!`);
+                            fileUploadStatus.textContent = `Uploaded: ${file.name}`;
+                            setTimeout(() => { fileUploadStatus.textContent = '' }, 2500);
+                            renderSharedNotes();
+                        } else {
+                            showToast(result.message || 'Upload failed');
+                        }
+                    } catch (err) {
+                        console.error('Upload error', err);
+                        showToast('Network error while uploading');
+                    } finally {
+                        e.target.value = '';
+                    }
                 }
             });
 

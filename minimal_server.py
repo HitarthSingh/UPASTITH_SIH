@@ -192,6 +192,10 @@ def aboutus():
 def suggestion_box():
     return render_template("suggestionbox.html")
 
+@app.route("/register_face")
+def register_face_page():
+    return render_template("register_face.html")
+
 # Route to serve static files (images) from templates directory
 @app.route('/<path:filename>')
 def serve_static_files(filename):
@@ -1788,6 +1792,72 @@ def mark_attendance_face():
         
     except Exception as e:
         print(f"Error in mark_attendance_face: {e}")
+        return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
+
+# QR Code Validation Endpoint
+@app.route('/api/validate_qr', methods=['POST'])
+def validate_qr():
+    """Validate QR code scanned by student"""
+    try:
+        # Check if user is logged in
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'message': 'Please log in first'}), 401
+        
+        data = request.get_json()
+        qr_data = data.get('qr_data')
+        
+        if not qr_data:
+            return jsonify({'success': False, 'message': 'QR data is required'}), 400
+        
+        # Parse QR data format: classId|classDate|timestamp
+        try:
+            parts = qr_data.split('|')
+            if len(parts) != 3:
+                return jsonify({'success': False, 'message': 'Invalid QR code format'}), 400
+            
+            class_id, class_date, qr_timestamp = parts
+            qr_timestamp = int(qr_timestamp)
+            
+        except (ValueError, IndexError):
+            return jsonify({'success': False, 'message': 'Invalid QR code format'}), 400
+        
+        # Check if QR code is recent (within 6 seconds + 2 second buffer)
+        current_timestamp = int(datetime.now().timestamp() * 1000)  # Convert to milliseconds
+        time_diff = abs(current_timestamp - qr_timestamp)
+        
+        # Allow 8 seconds total (6 seconds display + 2 seconds buffer)
+        if time_diff > 8000:  # 8000 milliseconds = 8 seconds
+            return jsonify({'success': False, 'message': 'QR code has expired. Please scan the current QR code.'}), 400
+        
+        # Get class information 
+        conn = sqlite3.connect('classes.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT subject_name, teacher_name, start_time, end_time, room_number
+            FROM classes WHERE id = ? AND is_active = 1
+        ''', (class_id,))
+        
+        class_info = cursor.fetchone()
+        conn.close()
+        
+        if not class_info:
+            return jsonify({'success': False, 'message': 'Class not found or inactive'}), 404
+        
+        return jsonify({
+            'success': True,
+            'message': 'QR code validated successfully',
+            'class_info': {
+                'id': class_id,
+                'subject': class_info[0],
+                'teacher': class_info[1],
+                'time': f"{class_info[2]} - {class_info[3]}",
+                'room': class_info[4],
+                'date': class_date
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error in validate_qr: {e}")
         return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
 
 # Classes API Endpoints

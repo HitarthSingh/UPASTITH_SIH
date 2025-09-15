@@ -160,72 +160,7 @@
                     <!-- Notes Repository section -->
                     <div class="glass-card rounded-3xl shadow-xl p-8">
                         <h2 class="text-3xl font-bold mb-6 text-white">My Notes</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            
-                            <!-- Math Card -->
-                            <div class="glass-card rounded-xl p-6 flex flex-col justify-between transition-transform transform hover:scale-105 duration-300 shadow-md hover:bg-white/10">
-                                <div class="flex items-center mb-4 w-full">
-                                    <div class="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center mr-4 flex-shrink-0">
-                                        <i class="fas fa-calculator text-2xl text-[var(--light-purple)]"></i>
-                                    </div>
-                                    <div class="flex-grow">
-                                        <h3 class="font-semibold text-xl text-white">Math Notes</h3>
-                                        <p class="text-sm text-white/70">Updated: Oct 26, 2023</p>
-                                    </div>
-                                </div>
-                                <button class="btn-custom font-medium px-4 py-2 rounded-full self-end">
-                                    View Folder
-                                </button>
-                            </div>
-
-                            <!-- Physics Card -->
-                            <div class="glass-card rounded-xl p-6 flex flex-col justify-between transition-transform transform hover:scale-105 duration-300 shadow-md hover:bg-white/10">
-                                <div class="flex items-center mb-4 w-full">
-                                    <div class="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center mr-4 flex-shrink-0">
-                                        <i class="fas fa-atom text-2xl text-[var(--light-purple)]"></i>
-                                    </div>
-                                    <div class="flex-grow">
-                                        <h3 class="font-semibold text-xl text-white">Physics Lab Reports</h3>
-                                        <p class="text-sm text-white/70">Updated: Oct 25, 2023</p>
-                                    </div>
-                                </div>
-                                <button class="btn-custom font-medium px-4 py-2 rounded-full self-end">
-                                   View Folder
-                                </button>
-                            </div>
-                            
-                            <!-- History Card -->
-                            <div class="glass-card rounded-xl p-6 flex flex-col justify-between transition-transform transform hover:scale-105 duration-300 shadow-md hover:bg-white/10">
-                                <div class="flex items-center mb-4 w-full">
-                                    <div class="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center mr-4 flex-shrink-0">
-                                        <i class="fas fa-scroll text-2xl text-[var(--light-purple)]"></i>
-                                    </div>
-                                    <div class="flex-grow">
-                                        <h3 class="font-semibold text-xl text-white">History Essays</h3>
-                                        <p class="text-sm text-white/70">Updated: Oct 20, 2023</p>
-                                    </div>
-                                </div>
-                                <button class="btn-custom font-medium px-4 py-2 rounded-full self-end">
-                                    View Folder
-                                </button>
-                            </div>
-
-                            <!-- Chemistry Card -->
-                            <div class="glass-card rounded-xl p-6 flex flex-col justify-between transition-transform transform hover:scale-105 duration-300 shadow-md hover:bg-white/10">
-                                <div class="flex items-center mb-4 w-full">
-                                    <div class="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center mr-4 flex-shrink-0">
-                                        <i class="fas fa-flask-vial text-2xl text-[var(--light-purple)]"></i>
-                                    </div>
-                                    <div class="flex-grow">
-                                        <h3 class="font-semibold text-xl text-white">Chemistry Homework</h3>
-                                        <p class="text-sm text-white/70">Updated: Oct 18, 2023</p>
-                                    </div>
-                                </div>
-                                <button class="btn-custom font-medium px-4 py-2 rounded-full self-end">
-                                    View Folder
-                                </button>
-                            </div>
-                        </div>
+                        <div id="notes-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
                     </div>
                 </div>
             </main>
@@ -261,21 +196,83 @@
                 }
             });
 
-            // --- 1. MOCK DATA & INITIAL SETUP ---
-            const studentData = {
-                name: "Alex Williams",
-                id: "67890",
-                initial: "A"
-            };
-
-            function populateStudentInfo() {
-                document.getElementById('student-name').textContent = studentData.name;
-                document.getElementById('student-id').textContent = `ID: ${studentData.id}`;
-                document.getElementById('student-initial').textContent = studentData.initial;
+            // Fetch student info for header
+            async function fetchStudent() {
+                try {
+                    const res = await fetch('/api/student/me');
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    if (data.success) {
+                        document.getElementById('student-name').textContent = data.student.name;
+                        document.getElementById('student-id').textContent = `ID: ${data.student.student_id}`;
+                        document.getElementById('student-initial').textContent = (data.student.name || 'S').charAt(0).toUpperCase();
+                    }
+                } catch (e) { console.error(e); }
             }
 
-            // --- 2. INITIALIZE ---
-            populateStudentInfo();
+            function cardIconForSubject(subject) {
+                const map = {
+                    'Mathematics': 'fa-calculator',
+                    'Physics': 'fa-atom',
+                    'Chemistry': 'fa-flask-vial',
+                    'History': 'fa-scroll'
+                };
+                return map[subject] || 'fa-file-lines';
+            }
+
+            async function loadUnseenNotes() {
+                const container = document.getElementById('notes-container');
+                container.innerHTML = '<p class="text-center text-white/70 p-4 col-span-full">Loading notes...</p>';
+                try {
+                    const res = await fetch('/api/notes/unseen');
+                    const data = await res.json();
+                    if (!res.ok || !data.success) {
+                        container.innerHTML = '<p class="text-center text-red-500 p-4 col-span-full">Failed to load notes.</p>';
+                        return;
+                    }
+                    const notes = data.notes || [];
+                    if (notes.length === 0) {
+                        container.innerHTML = '<p class="text-center text-white/70 p-4 col-span-full">No new notes available.</p>';
+                        return;
+                    }
+                    // Render cards
+                    container.innerHTML = notes.map(n => `
+                        <div class="glass-card rounded-xl p-6 flex flex-col justify-between transition-transform transform hover:scale-105 duration-300 shadow-md hover:bg-white/10">
+                            <div class="flex items-center mb-4 w-full">
+                                <div class="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center mr-4 flex-shrink-0">
+                                    <i class="fas ${cardIconForSubject(n.subject)} text-2xl text-[var(--light-purple)]"></i>
+                                </div>
+                                <div class="flex-grow min-w-0">
+                                    <h3 class="font-semibold text-xl text-white truncate">${n.subject}</h3>
+                                    <p class="text-sm text-white/70">By ${n.teacher_name || 'Teacher'} • ${new Date(n.uploaded_at).toLocaleString()}</p>
+                                    <p class="text-xs text-white/60 truncate">${n.file_name}</p>
+                                </div>
+                            </div>
+                            <a href="/api/notes/file/${n.id}" target="_blank" data-note-id="${n.id}" class="open-note btn-custom font-medium px-4 py-2 rounded-full self-end">Open</a>
+                        </div>
+                    `).join('');
+
+                    // When opening, mark as viewed so it won't reappear next time
+                    container.querySelectorAll('a.open-note').forEach(a => {
+                        a.addEventListener('click', async (e) => {
+                            const id = e.currentTarget.getAttribute('data-note-id');
+                            try {
+                                await fetch('/api/notes/mark_viewed', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ note_ids: [Number(id)] })
+                                });
+                            } catch (_) {}
+                        });
+                    });
+                } catch (e) {
+                    console.error(e);
+                    container.innerHTML = '<p class="text-center text-red-500 p-4 col-span-full">Error loading notes.</p>';
+                }
+            }
+
+            fetchStudent();
+            loadUnseenNotes();
         });
     </script>
 </body>

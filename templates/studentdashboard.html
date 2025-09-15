@@ -261,7 +261,26 @@
     </div>
 
     <!-- QR Code Scanner Modal -->
-        <div id="face-recognition-modal" class="qr-modal-overlay hidden">
+    <div id="qr-scanner-modal" class="qr-modal-overlay hidden">
+        <div class="glass-card rounded-3xl p-6 md:p-8 shadow-2xl relative w-full max-w-lg mx-4 text-white">
+            <button onclick="closeQRScanner()" class="absolute top-4 right-4 p-2 rounded-full text-white/50 hover:bg-white/20 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h2 id="qr-modal-title" class="text-2xl font-semibold mb-4 text-center">Scan QR Code</h2>
+            <div class="mb-4 text-center">
+                <p class="text-sm text-white/70 mb-2">Point your rear camera at the QR code displayed on the teacher's screen</p>
+            </div>
+            <video id="qr-video-stream" class="w-full rounded-lg" autoplay playsinline></video>
+            <canvas id="qr-canvas" style="display: none;"></canvas>
+            <p id="qr-scanner-status" class="mt-4 text-center text-white/70"></p>
+            <div id="qr-result" class="mt-4 p-3 rounded-lg hidden">
+                <p id="qr-result-text" class="text-center font-medium"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Face Recognition Modal -->
+    <div id="face-recognition-modal" class="qr-modal-overlay hidden">
         <div class="glass-card rounded-3xl p-6 md:p-8 shadow-2xl relative w-full max-w-lg mx-4 text-white">
             <button onclick="closeFaceRecognition()" class="absolute top-4 right-4 p-2 rounded-full text-white/50 hover:bg-white/20 hover:text-white transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -474,9 +493,9 @@
                             </div>
                         </div>
                         <div class="flex-shrink-0">
-                            <button onclick="openFaceRecognition('${cls.subject}')" 
+                            <button onclick="openQRScanner('${cls.subject}')" 
                                     class="w-full lg:w-auto px-6 py-2.5 ${studentData.attendanceStatus[cls.subject] ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-[var(--accent-purple-1)] hover:bg-[var(--light-purple)] text-[var(--dark-blue)]'} rounded-lg shadow-md transition-all duration-200 text-sm font-semibold whitespace-nowrap flex items-center justify-center gap-2">
-                                ${studentData.attendanceStatus[cls.subject] ? '✅ Attendance Marked' : ' Mark Attendance'}
+                                ${studentData.attendanceStatus[cls.subject] ? '✅ Attendance Marked' : 'Mark Attendance'}
                             </button>
                         </div>
                     `;
@@ -608,10 +627,173 @@
                 }
             }
 
-            // --- 5. FACE RECOGNITION MODAL LOGIC ---
-            let currentStream = null;
+            // --- 5. QR SCANNER MODAL LOGIC ---
+            let currentQRStream = null;
+            let currentFaceStream = null;
             let currentSubject = null;
+            let qrScanInterval = null;
 
+            window.openQRScanner = async (subjectName) => {
+                // Check if attendance is already marked
+                if (studentData.attendanceStatus[subjectName]) {
+                    alert(`✅ Attendance already marked for ${subjectName}`);
+                    return;
+                }
+                
+                currentSubject = subjectName;
+                const modal = document.getElementById('qr-scanner-modal');
+                const modalTitle = document.getElementById('qr-modal-title');
+                const video = document.getElementById('qr-video-stream');
+                const statusEl = document.getElementById('qr-scanner-status');
+                
+                modalTitle.textContent = `Scan QR Code - ${subjectName}`;
+                statusEl.textContent = 'Starting rear camera...';
+                modal.classList.remove('hidden');
+                
+                try {
+                    // Use rear camera for QR scanning
+                    currentQRStream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { 
+                            facingMode: 'environment', // Rear camera
+                            width: { ideal: 640 },
+                            height: { ideal: 480 }
+                        } 
+                    });
+                    video.srcObject = currentQRStream;
+                    
+                    statusEl.textContent = 'Camera ready! Point at the QR code on teacher\'s screen.';
+                    
+                    // Start QR code scanning
+                    startQRScanning();
+                    
+                } catch (error) {
+                    console.error('Error accessing rear camera:', error);
+                    statusEl.textContent = 'Error: Could not access rear camera. Trying front camera...';
+                    
+                    // Fallback to front camera if rear camera fails
+                    try {
+                        currentQRStream = await navigator.mediaDevices.getUserMedia({ 
+                            video: { 
+                                facingMode: 'user', // Front camera fallback
+                                width: { ideal: 640 },
+                                height: { ideal: 480 }
+                            } 
+                        });
+                        video.srcObject = currentQRStream;
+                        statusEl.textContent = 'Using front camera. Point at the QR code.';
+                        startQRScanning();
+                    } catch (fallbackError) {
+                        console.error('Error accessing any camera:', fallbackError);
+                        statusEl.textContent = 'Error: Could not access camera. Please check permissions.';
+                    }
+                }
+            };
+
+            function startQRScanning() {
+                const video = document.getElementById('qr-video-stream');
+                const canvas = document.getElementById('qr-canvas');
+                const ctx = canvas.getContext('2d');
+                const statusEl = document.getElementById('qr-scanner-status');
+                const resultEl = document.getElementById('qr-result');
+                const resultText = document.getElementById('qr-result-text');
+                
+                qrScanInterval = setInterval(() => {
+                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height);
+                        
+                        if (code) {
+                            console.log('QR Code detected:', code.data);
+                            clearInterval(qrScanInterval);
+                            validateQRCode(code.data);
+                        }
+                    }
+                }, 100); // Scan every 100ms
+            }
+
+            async function validateQRCode(qrData) {
+                const statusEl = document.getElementById('qr-scanner-status');
+                const resultEl = document.getElementById('qr-result');
+                const resultText = document.getElementById('qr-result-text');
+                
+                statusEl.textContent = 'Validating QR code...';
+                resultEl.classList.add('hidden');
+                
+                try {
+                    const response = await fetch('/api/validate_qr', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            qr_data: qrData
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        resultText.textContent = `✅ QR Code Valid! Class: ${result.class_info.subject}`;
+                        resultEl.className = 'mt-4 p-3 rounded-lg bg-green-600/20 border border-green-500/30';
+                        statusEl.textContent = 'QR code validated! Switching to face recognition...';
+                        
+                        // Close QR scanner and open face recognition
+                        setTimeout(() => {
+                            closeQRScanner();
+                            openFaceRecognition(currentSubject);
+                        }, 2000);
+                    } else {
+                        resultText.textContent = `❌ ${result.message}`;
+                        resultEl.className = 'mt-4 p-3 rounded-lg bg-red-600/20 border border-red-500/30';
+                        statusEl.textContent = 'Please scan the current QR code from teacher\'s screen.';
+                        
+                        // Restart scanning after 3 seconds
+                        setTimeout(() => {
+                            resultEl.classList.add('hidden');
+                            startQRScanning();
+                        }, 3000);
+                    }
+                    
+                    resultEl.classList.remove('hidden');
+                    
+                } catch (error) {
+                    console.error('Error validating QR code:', error);
+                    resultText.textContent = '❌ Network error. Please try again.';
+                    resultEl.className = 'mt-4 p-3 rounded-lg bg-red-600/20 border border-red-500/30';
+                    resultEl.classList.remove('hidden');
+                    statusEl.textContent = 'Network error occurred.';
+                    
+                    // Restart scanning after 3 seconds
+                    setTimeout(() => {
+                        resultEl.classList.add('hidden');
+                        startQRScanning();
+                    }, 3000);
+                }
+            }
+
+            window.closeQRScanner = () => {
+                const modal = document.getElementById('qr-scanner-modal');
+                const resultEl = document.getElementById('qr-result');
+                
+                if (qrScanInterval) {
+                    clearInterval(qrScanInterval);
+                    qrScanInterval = null;
+                }
+                
+                if (currentQRStream) {
+                    currentQRStream.getTracks().forEach(track => track.stop());
+                    currentQRStream = null;
+                }
+                
+                modal.classList.add('hidden');
+                resultEl.classList.add('hidden');
+            };
+
+            // --- 6. FACE RECOGNITION MODAL LOGIC ---
             window.openFaceRecognition = async (subjectName) => {
                 // Check if attendance is already marked
                 if (studentData.attendanceStatus[subjectName]) {
@@ -626,26 +808,27 @@
                 const statusEl = document.getElementById('face-camera-status');
                 
                 modalTitle.textContent = `Mark Attendance - ${subjectName}`;
-                statusEl.textContent = 'Starting camera...';
+                statusEl.textContent = 'Starting front camera...';
                 modal.classList.remove('hidden');
                 
                 try {
-                    currentStream = await navigator.mediaDevices.getUserMedia({ 
+                    // Use front camera for face recognition
+                    currentFaceStream = await navigator.mediaDevices.getUserMedia({ 
                         video: { 
-                            facingMode: 'user',
+                            facingMode: 'user', // Front camera
                             width: { ideal: 640 },
                             height: { ideal: 480 }
                         } 
                     });
-                    video.srcObject = currentStream;
+                    video.srcObject = currentFaceStream;
                     
                     // Apply lateral inversion for natural mirror effect
                     video.style.transform = 'scaleX(-1)';
                     
                     statusEl.textContent = 'Camera ready! Position your face and click capture.';
                 } catch (error) {
-                    console.error('Error accessing camera:', error);
-                    statusEl.textContent = 'Error: Could not access camera. Please check permissions.';
+                    console.error('Error accessing front camera:', error);
+                    statusEl.textContent = 'Error: Could not access front camera. Please check permissions.';
                 }
             };
 
@@ -653,9 +836,9 @@
                 const modal = document.getElementById('face-recognition-modal');
                 const resultEl = document.getElementById('face-result');
                 
-                if (currentStream) {
-                    currentStream.getTracks().forEach(track => track.stop());
-                    currentStream = null;
+                if (currentFaceStream) {
+                    currentFaceStream.getTracks().forEach(track => track.stop());
+                    currentFaceStream = null;
                 }
                 
                 modal.classList.add('hidden');
@@ -705,16 +888,16 @@
                         if (result.success) {
                             resultText.textContent = `✅ ${result.message}`;
                             resultEl.className = 'mt-4 p-3 rounded-lg bg-green-600/20 border border-green-500/30';
-                            statusEl.textContent = 'Attendance marked successfully!';
+                            statusEl.textContent = 'Attendance marked successfully! Closing camera...';
                             
                             // Update attendance status and refresh UI
                             studentData.attendanceStatus[currentSubject] = true;
                             renderTimetable();
                             
-                            // Auto-close after 3 seconds
+                            // Auto-close after 2 seconds
                             setTimeout(() => {
                                 closeFaceRecognition();
-                            }, 3000);
+                            }, 2000);
                         } else {
                             resultText.textContent = `❌ ${result.message}`;
                             resultEl.className = 'mt-4 p-3 rounded-lg bg-red-600/20 border border-red-500/30';
@@ -733,7 +916,7 @@
                 }, 'image/jpeg', 0.8);
             };
 
-            // --- 5. INITIALIZE DASHBOARD ---
+            // --- 7. INITIALIZE DASHBOARD ---
             async function initializeDashboard() {
                 // Show loading state
                 document.getElementById('welcome-heading').textContent = 'Loading...';
@@ -764,7 +947,7 @@
             initializeDashboard();
         });
 
-        // --- 6. LOGOUT FUNCTIONALITY ---
+        // --- 8. LOGOUT FUNCTIONALITY ---
         async function handleLogout() {
             // Show confirmation dialog
             if (confirm('Are you sure you want to logout?')) {
