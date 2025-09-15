@@ -457,18 +457,34 @@
                 submitButton.classList.add('opacity-50', 'cursor-not-allowed');
 
                 try {
-                    await new Promise(resolve => setTimeout(resolve, 1500)); 
-                    const result = { success: true, message: 'Login successful! Redirecting...' }; 
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            username: studentIdInput.value,
+                            password: passwordInput.value,
+                            user_type: 'student'
+                        })
+                    });
+
+                    const result = await response.json();
                     
                     if (result.success) {
                         showMessage(result.message, 'success');
+                        // Immediate redirect after showing success message
                         setTimeout(() => {
-                            // window.location.href = '/studentdashboard';
-                        }, 1500);
+                            const redirectUrl = result.redirect_url || '/studentdashboard';
+                            console.log('Redirecting to:', redirectUrl);
+                            window.location.replace(redirectUrl);
+                        }, 800);
                     } else {
                         showMessage(result.message || 'Invalid credentials.', 'error');
                     }
                 } catch (error) {
+                    console.error('Login error:', error);
                     showMessage('Login failed. Please try again.', 'error');
                 }
 

@@ -8,6 +8,7 @@ import random
 import secrets
 from datetime import datetime, timedelta
 from face_utils import FaceRecognitionSystem
+from enhanced_face_utils import EnhancedFaceRecognitionSystem
 from db_leaves import init_leave_db
 import json
 
@@ -24,8 +25,9 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 
 CORS(app, supports_credentials=True)
 
-# Initialize face recognition system
-face_system = FaceRecognitionSystem()
+# Initialize face recognition systems
+face_system = FaceRecognitionSystem()  # Legacy system
+enhanced_face_system = EnhancedFaceRecognitionSystem()  # Enhanced with liveness detection
 
 # Session validation middleware
 def require_login(user_type=None):
@@ -661,6 +663,7 @@ def register_face_legacy():
 
 @app.route("/api/recognizefinal1", methods=["POST"])
 def recognize_face():
+    """Legacy face recognition without liveness detection (INSECURE)"""
     try:
         data = request.get_json()
         
@@ -685,7 +688,7 @@ def recognize_face():
         attendance_result = face_system.mark_attendance(name)
         
         if attendance_result["success"]:
-            attendance_message = f"✅ Face recognized: {name}! Attendance marked successfully."
+            attendance_message = f"⚠️ Face recognized: {name}! Attendance marked (NO LIVENESS VERIFICATION - INSECURE)."
             return jsonify({
                 "success": True,
                 "name": name,
@@ -693,7 +696,9 @@ def recognize_face():
                 "attendance_marked": True,
                 "attendance_message": attendance_message,
                 "message": attendance_message,
-                "received_data": bool(data)
+                "received_data": bool(data),
+                "liveness_verified": False,
+                "security_warning": "This method can be spoofed with photos. Use /api/recognize_with_liveness for secure authentication."
             })
         else:
             # Attendance already marked
@@ -704,8 +709,111 @@ def recognize_face():
                 "attendance_marked": False,
                 "attendance_message": attendance_result["message"],
                 "message": attendance_result["message"],
-                "received_data": bool(data)
+                "received_data": bool(data),
+                "liveness_verified": False,
+                "security_warning": "This method can be spoofed with photos. Use /api/recognize_with_liveness for secure authentication."
             })
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Error: {str(e)}"})
+
+# Enhanced Face Recognition API Endpoints with Liveness Detection
+
+@app.route("/api/register_with_liveness", methods=["POST"])
+def register_face_with_liveness():
+    """Register a new face with liveness verification (SECURE)"""
+    try:
+        data = request.get_json()
+        
+        if not data or 'name' not in data:
+            return jsonify({
+                "success": False,
+                "message": "Missing required field: name"
+            })
+        
+        name = data['name']
+        email = data.get('email', None)
+        
+        # Check if liveness detection is available
+        if not enhanced_face_system.check_liveness_model():
+            return jsonify({
+                "success": False,
+                "message": "Liveness detection model not available. Please run setup_liveness.py first."
+            })
+        
+        # This endpoint requires webcam access, so it should be called from a desktop application
+        # For web applications, you would need to implement a different approach
+        return jsonify({
+            "success": False,
+            "message": "This endpoint requires direct webcam access. Please use the desktop application or test_liveness.py script."
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Error: {str(e)}"})
+
+@app.route("/api/recognize_with_liveness", methods=["POST"])
+def recognize_face_with_liveness():
+    """Recognize face with liveness verification (SECURE)"""
+    try:
+        # Check if liveness detection is available
+        if not enhanced_face_system.check_liveness_model():
+            return jsonify({
+                "success": False,
+                "message": "Liveness detection model not available. Please run setup_liveness.py first."
+            })
+        
+        # This endpoint requires webcam access, so it should be called from a desktop application
+        # For web applications, you would need to implement a different approach
+        return jsonify({
+            "success": False,
+            "message": "This endpoint requires direct webcam access. Please use the desktop application or test_liveness.py script."
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Error: {str(e)}"})
+
+@app.route("/api/liveness_status", methods=["GET"])
+def check_liveness_status():
+    """Check if liveness detection is available"""
+    try:
+        model_available = enhanced_face_system.check_liveness_model()
+        
+        return jsonify({
+            "success": True,
+            "liveness_available": model_available,
+            "message": "Liveness detection is ready" if model_available else "Liveness detection model not found. Run setup_liveness.py to install.",
+            "setup_required": not model_available
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Error: {str(e)}"})
+
+@app.route("/api/attendance_records_enhanced", methods=["GET"])
+def get_enhanced_attendance_records():
+    """Get attendance records with liveness verification info"""
+    try:
+        date = request.args.get('date')
+        result = enhanced_face_system.get_attendance_records(date)
+        
+        if result["success"]:
+            # Add security analysis
+            records = result["records"]
+            total_records = len(records)
+            secure_records = sum(1 for r in records if r.get('liveness_verified', False))
+            insecure_records = total_records - secure_records
+            
+            return jsonify({
+                "success": True,
+                "records": records,
+                "security_summary": {
+                    "total_records": total_records,
+                    "secure_with_liveness": secure_records,
+                    "insecure_without_liveness": insecure_records,
+                    "security_percentage": (secure_records / total_records * 100) if total_records > 0 else 0
+                }
+            })
+        else:
+            return jsonify(result)
         
     except Exception as e:
         return jsonify({"success": False, "message": f"Error: {str(e)}"})
@@ -1729,21 +1837,30 @@ def remove_class():
             conn.close()
             return jsonify({'success': False, 'message': 'Class not found'}), 404
         
-        # Get teacher ID from session
+        # Get teacher info from session
         conn_auth = sqlite3.connect('authentication.db')
         cursor_auth = conn_auth.cursor()
-        cursor_auth.execute('SELECT teacher_id FROM users WHERE id = ?', (session['user_id'],))
+        cursor_auth.execute('SELECT teacher_id, username FROM users WHERE id = ?', (session['user_id'],))
         teacher = cursor_auth.fetchone()
         conn_auth.close()
         
+        # Handle the case where teacher_id might be None in the database
+        # Use the same logic as in add_class to determine the effective teacher_id
+        if teacher:
+            effective_teacher_id = teacher[0] if teacher[0] else ('TCH001' if teacher[1] == 'teacher1' else 'TCH002' if teacher[1] == 'teacher2' else 'TCH001')
+        else:
+            conn.close()
+            return jsonify({'success': False, 'message': 'Teacher not found'}), 404
+        
         print(f"DEBUG: Remove class - session user_id: {session['user_id']}")
         print(f"DEBUG: Remove class - teacher from session: {teacher}")
+        print(f"DEBUG: Remove class - effective_teacher_id: {effective_teacher_id}")
         print(f"DEBUG: Remove class - class_info: {class_info}")
-        print(f"DEBUG: Remove class - comparing {teacher[0] if teacher else 'None'} with {class_info[1]}")
+        print(f"DEBUG: Remove class - comparing {effective_teacher_id} with {class_info[1]}")
         
-        if not teacher or teacher[0] != class_info[1]:
+        if effective_teacher_id != class_info[1]:
             conn.close()
-            return jsonify({'success': False, 'message': f'You can only remove your own classes. Your ID: {teacher[0] if teacher else "None"}, Class owner: {class_info[1]}'}), 403
+            return jsonify({'success': False, 'message': f'You can only remove your own classes. Your ID: {effective_teacher_id}, Class owner: {class_info[1]}'}), 403
         
         # Remove class (this will also remove enrollments due to foreign key constraints)
         cursor.execute('DELETE FROM classes WHERE id = ?', (class_id,))
@@ -1830,12 +1947,17 @@ def add_class():
         # Get teacher info from session
         conn_auth = sqlite3.connect('authentication.db')
         cursor_auth = conn_auth.cursor()
-        cursor_auth.execute('SELECT teacher_id, full_name FROM users WHERE id = ?', (session['user_id'],))
+        cursor_auth.execute('SELECT teacher_id, full_name, username FROM users WHERE id = ?', (session['user_id'],))
         teacher = cursor_auth.fetchone()
         conn_auth.close()
         
-        teacher_id = teacher[0] if teacher and teacher[0] else 'TCH001'
-        teacher_name = teacher[1] if teacher and teacher[1] else 'Prof. Eleanor'
+        if teacher:
+            # Use consistent teacher_id mapping logic
+            teacher_id = teacher[0] if teacher[0] else ('TCH001' if teacher[2] == 'teacher1' else 'TCH002' if teacher[2] == 'teacher2' else 'TCH001')
+            teacher_name = teacher[1] if teacher[1] else 'Prof. Eleanor'
+        else:
+            teacher_id = 'TCH001'
+            teacher_name = 'Prof. Eleanor'
         
         print(f"DEBUG: Add class - session user_id: {session['user_id']}")
         print(f"DEBUG: Add class - teacher from session: {teacher}")
