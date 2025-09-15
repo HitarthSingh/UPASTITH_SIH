@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, session, redirect, send_from_directory
+from flask import Flask, request, jsonify, render_template, session, redirect, send_from_directory, make_response
 from flask_cors import CORS
 import os
 import sqlite3
@@ -167,7 +167,11 @@ def teacherlogin():
 
 @app.route("/studentdashboard")
 def student_dashboard():
-    return render_template("studentdashboard.html")
+    response = make_response(render_template("studentdashboard.html"))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route("/demoleave")
 def demo_leave():
@@ -175,22 +179,39 @@ def demo_leave():
 
 @app.route("/timetable")
 def timetable():
-    return render_template("timetable.html")
+    response = make_response(render_template("timetable.html"))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route("/repository")
 def repository():
-    return render_template("repository.html")
+    response = make_response(render_template("repository.html"))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route("/studentresult")
 def student_result():
-    return render_template("studentresult.html")
+    response = make_response(render_template("studentresult.html"))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
 @app.route("/aboutus")
 def aboutus():
     return render_template("aboutus.html")
 
 @app.route("/suggestionbox")
 def suggestion_box():
-    return render_template("suggestionbox.html")
+    response = make_response(render_template("suggestionbox.html"))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route("/register_face")
 def register_face_page():
