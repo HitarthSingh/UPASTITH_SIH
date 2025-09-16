@@ -1662,6 +1662,111 @@ def get_attendance_by_date(date):
     except Exception as e:
         return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
 
+@app.route('/api/attendance/class/<subject>/<date>', methods=['GET'])
+def get_class_attendance_by_date(subject, date):
+    """Get attendance records for a specific class/subject on a specific date"""
+    try:
+        conn = sqlite3.connect('attendance.db')
+        cursor = conn.cursor()
+        
+        # Get attendance records from class_attendance table
+        cursor.execute('''
+            SELECT student_name, student_id, timestamp, recognition_confidence
+            FROM class_attendance
+            WHERE subject = ? AND DATE(timestamp) = ?
+            ORDER BY timestamp DESC
+        ''', (subject, date))
+        
+        records = cursor.fetchall()
+        conn.close()
+        
+        attendance_records = []
+        for record in records:
+            attendance_records.append({
+                'student_name': record[0],
+                'student_id': record[1],
+                'timestamp': record[2],
+                'confidence': record[3]
+            })
+        
+        return jsonify({
+            'success': True,
+            'subject': subject,
+            'date': date,
+            'records': attendance_records,
+            'total_present': len(attendance_records)
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
+
+@app.route('/api/attendance/overview', methods=['GET'])
+def get_attendance_overview():
+    """Get attendance overview for all classes on a specific date"""
+    try:
+        date = request.args.get('date')
+        if not date:
+            date = datetime.now().strftime('%Y-%m-%d')
+        
+        conn = sqlite3.connect('attendance.db')
+        cursor = conn.cursor()
+        
+        # Get attendance summary by subject
+        cursor.execute('''
+            SELECT subject, COUNT(*) as total_present, 
+                   GROUP_CONCAT(student_name, ', ') as present_students
+            FROM class_attendance
+            WHERE DATE(timestamp) = ?
+            GROUP BY subject
+            ORDER BY subject
+        ''', (date,))
+        
+        subject_records = cursor.fetchall()
+        
+        # Get all unique students who marked attendance today
+        cursor.execute('''
+            SELECT DISTINCT student_name, student_id, 
+                   GROUP_CONCAT(DISTINCT subject) as subjects_attended
+            FROM class_attendance
+            WHERE DATE(timestamp) = ?
+            GROUP BY student_name, student_id
+            ORDER BY student_name
+        ''', (date,))
+        
+        student_records = cursor.fetchall()
+        
+        conn.close()
+        
+        # Format subject data
+        subject_summary = []
+        for record in subject_records:
+            subject_summary.append({
+                'subject': record[0],
+                'total_present': record[1],
+                'present_students': record[2].split(', ') if record[2] else []
+            })
+        
+        # Format student data
+        student_summary = []
+        for record in student_records:
+            student_summary.append({
+                'student_name': record[0],
+                'student_id': record[1],
+                'subjects_attended': record[2].split(',') if record[2] else []
+            })
+        
+        return jsonify({
+            'success': True,
+            'date': date,
+            'subject_summary': subject_summary,
+            'student_summary': student_summary,
+            'total_students_present': len(student_records),
+            'total_subjects': len(subject_records)
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
+
 # Face Recognition API Endpoints
 @app.route('/api/users/registered', methods=['GET'])
 def get_registered_users():
