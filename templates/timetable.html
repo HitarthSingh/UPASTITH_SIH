@@ -189,48 +189,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- 0. SESSION VALIDATION ---
-            async function validateSession() {
-                try {
-                    const response = await fetch('/api/student/me', {
-                        method: 'GET',
-                        credentials: 'same-origin'
-                    });
-                    
-                    if (!response.ok || response.status === 401) {
-                        // Session is invalid, redirect to login
-                        console.log('Session invalid, redirecting to login');
-                        window.location.replace('/');
-                        return false;
-                    }
-                    
-                    const data = await response.json();
-                    if (!data.success) {
-                        // Session is invalid, redirect to login
-                        console.log('Session invalid, redirecting to login');
-                        window.location.replace('/');
-                        return false;
-                    }
-                    
-                    return true;
-                } catch (error) {
-                    console.error('Error validating session:', error);
-                    // On error, redirect to login for security
-                    window.location.replace('/');
-                    return false;
-                }
-            }
-
-            // Validate session before proceeding
-            validateSession().then(isValid => {
-                if (!isValid) return;
-                
-                // Continue with normal page initialization
-                initializePage();
-            });
-
-            function initializePage() {
-                const sidebar = document.getElementById('sidebar');
+            const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('main-content');
             const mobileSidebarToggle = document.getElementById('sidebar-toggle');
             const desktopSidebarToggle = document.getElementById('desktop-sidebar-toggle');
@@ -388,7 +347,6 @@
 
             renderCalendar();
             window.addEventListener('resize', renderCalendar);
-            } // End of initializePage function
         });
     </script>
 </body>

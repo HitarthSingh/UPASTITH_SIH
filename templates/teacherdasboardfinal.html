@@ -82,7 +82,7 @@
         <header class="glass-card sticky top-4 z-50 mx-4 sm:mx-auto max-w-7xl w-full rounded-2xl">
             <div class="px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
-                    <h1 class="text-lg sm:text-xl font-bold text-white">Automated Attendance</h1>
+                    <h1 class="text-lg sm:text-xl font-bold text-white">Upastith</h1>
                     <div class="flex items-center space-x-3">
                         <div class="text-right hidden md:block">
                             <p id="teacher-name" class="text-sm font-medium text-white">Loading...</p>
@@ -356,10 +356,14 @@
             // --- 1. INITIAL DATA LOADING & MOCK DATA ---
             // =================================================================
             
-            let mockSchedule = {
+            // Default schedule data
+            const defaultSchedule = {
                 '2025-09-08': [ { id: 'ds', subject: 'Data Structures', time: '09:00 AM - 10:00 AM', room: 'A-101' }, { id: 'os', subject: 'Operating Systems', time: '10:15 AM - 11:15 AM', room: 'C-204' } ],
                 '2025-09-09': [ { id: 'cn', subject: 'Computer Networks', time: '09:00 AM - 10:00 AM', room: 'D-Lab' } ]
             };
+
+            // Load schedule from localStorage or use default
+            let mockSchedule = loadScheduleFromStorage();
 
             let mockUpcomingEvents = [
                 { id: 1, date: '2025-09-15', title: 'Mid-Term Exams Start' }, { id: 2, date: '2025-09-22', title: 'Tech Fest "Innovate"' },
@@ -386,7 +390,7 @@
                 'history': { subject: 'History'}
             };
             const classNotes = {};
-            let currentDateKey = new Date('2025-09-08T00:00:00').toISOString().split('T')[0];
+            let currentDateKey = new Date().toISOString().split('T')[0];
 
             const fetchTeacherInfo = async () => {
                 const nameEl = document.getElementById('teacher-name');
@@ -414,7 +418,44 @@
             };
             
             // =================================================================
-            // --- 2. UI RENDERERS & HELPERS ---
+            // --- 2. PERSISTENT STORAGE FUNCTIONS ---
+            // =================================================================
+            
+            function saveScheduleToStorage() {
+                try {
+                    localStorage.setItem('teacherSchedule', JSON.stringify(mockSchedule));
+                } catch (error) {
+                    console.error('Error saving schedule to localStorage:', error);
+                }
+            }
+
+            function loadScheduleFromStorage() {
+                try {
+                    const saved = localStorage.getItem('teacherSchedule');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        // Merge with default schedule to ensure default classes are always present
+                        const merged = { ...defaultSchedule };
+                        Object.keys(parsed).forEach(date => {
+                            if (merged[date]) {
+                                // Combine default classes with saved classes, avoiding duplicates
+                                const existingIds = merged[date].map(c => c.id);
+                                const newClasses = parsed[date].filter(c => !existingIds.includes(c.id));
+                                merged[date] = [...merged[date], ...newClasses];
+                            } else {
+                                merged[date] = parsed[date];
+                            }
+                        });
+                        return merged;
+                    }
+                } catch (error) {
+                    console.error('Error loading schedule from localStorage:', error);
+                }
+                return { ...defaultSchedule };
+            }
+
+            // =================================================================
+            // --- 3. UI RENDERERS & HELPERS ---
             // =================================================================
             
             const showToast = (message) => {
@@ -460,7 +501,7 @@
                                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                                  <span>QR</span>
                            </button>
-                           <button data-class-id="${cls.id}" data-class-time="${cls.time}" class="remove-class-btn bg-red-500 text-white w-9 h-9 rounded-full hover:bg-red-600 transition-transform hover:scale-110 flex justify-center items-center">&#10005;</button>
+                           <button data-class-id="${cls.id}" data-class-subject="${cls.subject}" data-class-date="${currentDateKey}" data-class-time="${cls.time}" class="remove-class-btn bg-red-500 text-white w-9 h-9 rounded-full hover:bg-red-600 transition-transform hover:scale-110 flex justify-center items-center">&#10005;</button>
                         </div>`;
                     classListContainer.appendChild(classElement);
                 });
@@ -699,16 +740,54 @@
                     `;
                     
                     // Subject summary
-                    const subjectHTML = subject_summary.map(subject => `
+                    const subjectHTML = subject_summary.map((subject, index) => `
                         <div class="bg-black/20 rounded-lg p-4 mb-3">
                             <div class="flex justify-between items-center mb-2">
                                 <h3 class="font-semibold text-white">${subject.subject}</h3>
-                                <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-sm">${subject.total_present} present</span>
+                                <div class="flex items-center space-x-2">
+                                    <button class="bg-blue-500/20 text-blue-400 px-3 py-2 rounded-full text-sm hover:bg-blue-500/30 transition-colors cursor-pointer flex items-center space-x-2" onclick="toggleAttendanceDetails('subject-${index}')">
+                                        <span>Show Attendance</span>
+                                        <svg class="w-4 h-4 transform transition-transform" id="arrow-subject-${index}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="bg-green-500/20 text-green-400 px-3 py-2 rounded-full text-sm hover:bg-green-500/30 transition-colors cursor-pointer flex items-center space-x-1" onclick="downloadAttendance('${subject.subject}', ${JSON.stringify(subject).replace(/"/g, '&quot;')})">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-4-4m4 4l4-4m-4-4V3"></path>
+                                        </svg>
+                                        <span>Download</span>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="flex flex-wrap gap-2">
-                                ${subject.present_students.map(student => `
-                                    <span class="bg-green-500/20 text-green-300 px-2 py-1 rounded text-xs">${student}</span>
-                                `).join('')}
+                            <div class="hidden" id="subject-${index}">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                    <div>
+                                        <h4 class="text-sm font-semibold text-green-400 mb-2 flex items-center">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            Present (${subject.total_present})
+                                        </h4>
+                                        <div class="flex flex-wrap gap-2">
+                                            ${subject.present_students.map(student => `
+                                                <span class="bg-green-500/20 text-green-300 px-2 py-1 rounded text-xs">${student}</span>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-semibold text-red-400 mb-2 flex items-center">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                            Absent (${subject.absent_students ? subject.absent_students.length : 0})
+                                        </h4>
+                                        <div class="flex flex-wrap gap-2">
+                                            ${subject.absent_students ? subject.absent_students.map(student => `
+                                                <span class="bg-red-500/20 text-red-300 px-2 py-1 rounded text-xs">${student}</span>
+                                            `).join('') : '<span class="text-white/50 text-xs">No absent students</span>'}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     `).join('');
@@ -733,20 +812,13 @@
                     
                     displayContainer.innerHTML = `
                         ${summaryHTML}
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 gap-6">
                             <div>
                                 <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                     By Subject
                                 </h3>
                                 <div class="max-h-64 overflow-y-auto custom-scrollbar pr-2">${subjectHTML}</div>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
-                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                    By Student
-                                </h3>
-                                <div class="max-h-64 overflow-y-auto custom-scrollbar pr-2">${studentHTML}</div>
                             </div>
                         </div>
                     `;
@@ -961,6 +1033,9 @@
                             room: room
                         });
                         
+                        // Save to localStorage for persistence
+                        saveScheduleToStorage();
+                        
                         showToast(`✅ Class added successfully! All students enrolled.`);
                         closeAddClassModal();
                         renderTodaysClasses();
@@ -996,40 +1071,65 @@
                     openQRModal(classId, classSubject, classDate, classTime);
                 } else if (button.classList.contains('remove-class-btn')) {
                     if (confirm('Are you sure you want to remove this class?')) {
-                        // Call API to remove class from database
-                        try {
-                            const response = await fetch('/api/teacher/classes/remove', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    class_id: classId
-                                })
-                            });
+                        // Debug logging
+                        console.log('Removing class with ID:', classId, 'Time:', classTime);
+                        console.log('Current schedule:', mockSchedule[currentDateKey]);
+                        
+                        // Remove class locally first for immediate UI update
+                        const schedule = mockSchedule[currentDateKey];
+                        if(schedule) {
+                            // Try multiple matching strategies
+                            let classIndex = schedule.findIndex(c => c.id === classId && c.time === classTime);
                             
-                            const result = await response.json();
-                            
-                            if (result.success) {
-                                // Update local mock data
-                                const schedule = mockSchedule[currentDateKey];
-                                if(schedule) {
-                                    const classIndex = schedule.findIndex(c => c.id === classId && c.time === classTime);
-                                    if (classIndex > -1) { 
-                                        schedule.splice(classIndex, 1); 
-                                        showToast('✅ Class removed successfully!'); 
-                                        renderTodaysClasses(); 
-                                    }
-                                }
-                                
-                                // Notify that students should refresh their dashboard
-                                console.log('📢 Class removed - students should refresh their dashboard');
-                            } else {
-                                showToast(`❌ Error: ${result.message}`);
+                            // If not found, try matching by ID only
+                            if (classIndex === -1) {
+                                classIndex = schedule.findIndex(c => c.id === classId);
+                                console.log('Trying ID-only match, found index:', classIndex);
                             }
-                        } catch (error) {
-                            console.error('Error removing class:', error);
-                            showToast('Error removing class. Please try again.');
+                            
+                            // If still not found, try matching by time only
+                            if (classIndex === -1) {
+                                classIndex = schedule.findIndex(c => c.time === classTime);
+                                console.log('Trying time-only match, found index:', classIndex);
+                            }
+                            
+                            if (classIndex > -1) { 
+                                console.log('Removing class at index:', classIndex, schedule[classIndex]);
+                                schedule.splice(classIndex, 1); 
+                                
+                                // Save to localStorage for persistence
+                                saveScheduleToStorage();
+                                
+                                showToast('✅ Class removed successfully!'); 
+                                renderTodaysClasses(); 
+                                
+                                // Try to call API to remove from database (optional)
+                                try {
+                                    const response = await fetch('/api/teacher/classes/remove', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify({
+                                            class_id: classId
+                                        })
+                                    });
+                                    
+                                    const result = await response.json();
+                                    if (result.success) {
+                                        console.log('📢 Class removed from database - students should refresh their dashboard');
+                                    } else {
+                                        console.warn('Failed to remove class from database:', result.message);
+                                    }
+                                } catch (error) {
+                                    console.warn('API call failed, but class removed locally:', error);
+                                }
+                            } else {
+                                console.error('Class not found in schedule. Available classes:', schedule);
+                                showToast('❌ Class not found');
+                            }
+                        } else {
+                            showToast('❌ No classes found for today');
                         }
                     }
                 }
@@ -1183,7 +1283,96 @@
              };
 
              // =================================================================
-             // --- 5. INITIAL PAGE LOAD ---
+             // --- 5. ATTENDANCE FUNCTIONS ---
+             // =================================================================
+             
+             window.toggleAttendanceDetails = function(elementId) {
+                 const attendanceDiv = document.getElementById(elementId);
+                 const arrowIcon = document.getElementById('arrow-' + elementId);
+                 
+                 if (attendanceDiv.classList.contains('hidden')) {
+                     attendanceDiv.classList.remove('hidden');
+                     arrowIcon.style.transform = 'rotate(180deg)';
+                 } else {
+                     attendanceDiv.classList.add('hidden');
+                     arrowIcon.style.transform = 'rotate(0deg)';
+                 }
+             };
+
+             window.downloadAttendance = function(subjectName, subjectData) {
+                 try {
+                     const selectedDate = document.getElementById('overview-date-select').value;
+                     const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
+                         year: 'numeric',
+                         month: 'long',
+                         day: 'numeric'
+                     });
+                     
+                     // Create properly formatted CSV content
+                     let csvContent = '';
+                     
+                     // Header information
+                     csvContent += `"Attendance Report"\r\n`;
+                     csvContent += `"Subject","${subjectName}"\r\n`;
+                     csvContent += `"Date","${formattedDate}"\r\n`;
+                     csvContent += `"Generated On","${new Date().toLocaleString()}"\r\n`;
+                     csvContent += `\r\n`;
+                     
+                     // Main attendance data
+                     csvContent += `"Serial No.","Student Name","Attendance Status"\r\n`;
+                     
+                     let serialNo = 1;
+                     
+                     // Add present students
+                     if (subjectData.present_students && subjectData.present_students.length > 0) {
+                         subjectData.present_students.forEach(student => {
+                             csvContent += `"${serialNo}","${student}","Present"\r\n`;
+                             serialNo++;
+                         });
+                     }
+                     
+                     // Add absent students
+                     if (subjectData.absent_students && subjectData.absent_students.length > 0) {
+                         subjectData.absent_students.forEach(student => {
+                             csvContent += `"${serialNo}","${student}","Absent"\r\n`;
+                             serialNo++;
+                         });
+                     }
+                     
+                     // Add summary section
+                     const totalAbsent = subjectData.absent_students ? subjectData.absent_students.length : 0;
+                     const totalStudents = subjectData.total_present + totalAbsent;
+                     const attendancePercentage = totalStudents > 0 ? ((subjectData.total_present / totalStudents) * 100).toFixed(2) : 0;
+                     
+                     csvContent += `\r\n`;
+                     csvContent += `"ATTENDANCE SUMMARY"\r\n`;
+                     csvContent += `"Total Students","${totalStudents}"\r\n`;
+                     csvContent += `"Present","${subjectData.total_present}"\r\n`;
+                     csvContent += `"Absent","${totalAbsent}"\r\n`;
+                     csvContent += `"Attendance Percentage","${attendancePercentage}%"\r\n`;
+                     
+                     // Create and download file
+                     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                     const link = document.createElement('a');
+                     const url = URL.createObjectURL(blob);
+                     const fileName = `${subjectName.replace(/[^a-zA-Z0-9]/g, '_')}_Attendance_${selectedDate}.csv`;
+                     link.setAttribute('href', url);
+                     link.setAttribute('download', fileName);
+                     link.style.visibility = 'hidden';
+                     document.body.appendChild(link);
+                     link.click();
+                     document.body.removeChild(link);
+                     URL.revokeObjectURL(url);
+                     
+                     showToast(`Attendance for ${subjectName} downloaded successfully!`);
+                 } catch (error) {
+                     console.error('Error downloading attendance:', error);
+                     showToast('Error downloading attendance file');
+                 }
+             };
+
+             // =================================================================
+             // --- 6. INITIAL PAGE LOAD ---
              // =================================================================
              
              // Set default date to today
