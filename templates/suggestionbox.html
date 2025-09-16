@@ -146,17 +146,30 @@
                     <li><a href="suggestionbox.html" class="nav-link flex items-center rounded-lg bg-white/20 p-3 font-semibold text-white shadow-md"><svg class="mr-3 h-5 w-5 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20.25h4.5m-15-2.25h15M12 16.5h4.5M3 13.5h18M12 9.75h4.5M3 6.75h18"></path>
                             </svg><span class="nav-text whitespace-nowrap">Suggestion Box</span></a></li>
+                            <li><a href="#" onclick="handleLogout()" class="nav-link flex items-center rounded-lg p-3 text-white/70 transition-colors hover:bg-white/10 hover:text-red-300"><svg class="h-5 w-5 mr-3 flex-shrink-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg><span class="nav-text whitespace-nowrap">Logout</span></a></li>
                 </ul>
             </nav>
         </aside>
 
         <div id="sidebar-backdrop" class="fixed inset-0 z-[59] hidden bg-black/50 lg:hidden"></div>
 
-        <button id="sidebar-toggle" class="glass-card fixed top-4 left-4 z-[61] rounded-md p-2 text-white lg:hidden">
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
-        </button>
+        <!-- Mobile Header with Profile -->
+        <div class="glass-card fixed top-0 left-0 right-0 z-[60] flex items-center justify-between p-4 lg:hidden">
+            <button id="sidebar-toggle" class="rounded-md p-2 text-white">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+            <div class="flex items-center space-x-3">
+                <div class="text-right">
+                    <h3 id="mobile-student-name" class="text-sm font-medium text-white"></h3>
+                    <p id="mobile-student-id" class="text-xs text-white/70"></p>
+                </div>
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent-purple-1)] shadow-inner">
+                    <span id="mobile-student-initial" class="text-lg font-bold text-[var(--dark-blue)]"></span>
+                </div>
+            </div>
+        </div>
 
         <div id="main-content" class="flex-grow lg:ml-64">
             <main class="flex-grow p-4 pt-20 lg:p-8 lg:pt-8">
@@ -254,9 +267,72 @@
                 document.getElementById('student-name').textContent = studentData.name;
                 document.getElementById('student-id').textContent = `ID: ${studentData.id}`;
                 document.getElementById('student-initial').textContent = studentData.initial;
+                
+                // Also populate mobile header
+                document.getElementById('mobile-student-name').textContent = studentData.name;
+                document.getElementById('mobile-student-id').textContent = `ID: ${studentData.id}`;
+                document.getElementById('mobile-student-initial').textContent = studentData.initial;
             }
 
-            // --- 2. INITIALIZE ---
+            // --- 2. LOGOUT FUNCTIONALITY ---
+            window.handleLogout = async function() {
+                // Show confirmation dialog
+                if (confirm('Are you sure you want to logout?')) {
+                    try {
+                        // Show loading state
+                        const logoutButton = document.querySelector('a[onclick="handleLogout()"]');
+                        if (logoutButton) {
+                            const originalText = logoutButton.innerHTML;
+                            logoutButton.innerHTML = '<svg class="h-5 w-5 mr-3 flex-shrink-0 transition-all animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-dashoffset="32"><animate attributeName="stroke-dashoffset" dur="2s" values="32;0" repeatCount="indefinite"/></circle></svg><span class="nav-text whitespace-nowrap">Logging out...</span>';
+                        }
+                        
+                        // Clear any stored client-side session data
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        
+                        // Clear any cached data
+                        if ('caches' in window) {
+                            caches.keys().then(names => {
+                                names.forEach(name => {
+                                    caches.delete(name);
+                                });
+                            });
+                        }
+                        
+                        // Call logout API to end server-side session
+                        const response = await fetch('/api/logout', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            credentials: 'same-origin' // Include session cookies
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            console.log('✅ Session terminated successfully:', result.message);
+                        } else {
+                            console.warn('⚠️ Logout API returned error:', result.message);
+                        }
+                        
+                    } catch (error) {
+                        console.error('❌ Error during logout API call:', error);
+                        // Continue with logout even if API call fails
+                    } finally {
+                        // Force clear any remaining session data
+                        document.cookie.split(";").forEach(function(c) { 
+                            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                        });
+                        
+                        // Always redirect to main login dashboard regardless of API response
+                        // Use replace to prevent back button from returning to dashboard
+                        window.location.replace('/');
+                    }
+                }
+            };
+
+            // --- 3. INITIALIZE ---
             populateStudentInfo();
         });
     </script>
