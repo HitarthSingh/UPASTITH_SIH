@@ -118,7 +118,7 @@
                                 </div>
                             </div>
                             <div class="relative h-64 md:h-72"><canvas id="attendanceChart"></canvas></div>
-                            <div class="mt-6 space-y-3 text-sm font-medium text-white/80">
+                            <div class="mt-6 space-y-3 text-sm font-medium text-white/80 flex flex-col items-center">
                                 <div class="flex items-center"><div class="w-4 h-4 rounded-full mr-3" style="background-color: #E5989B;"></div><span>Below 75% </span></div>
                                 <div class="flex items-center"><div class="w-4 h-4 rounded-full mr-3" style="background-color: #E0C080;"></div><span>75% - 85% </span></div>
                                 <div class="flex items-center"><div class="w-4 h-4 rounded-full mr-3" style="background-color: #6D9F91;"></div><span>Above 85% </span></div>
@@ -126,23 +126,23 @@
                         </div>
 
                         <div class="glass-card rounded-2xl shadow-xl p-6">
-                             <div class="flex justify-between items-center mb-4">
-                                <div class="flex items-center space-x-3">
-                                     <div class="bg-black/20 p-2.5 rounded-lg">
-                                         <svg class="w-6 h-6 text-[var(--light-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                     </div>
-                                     <div>
-                                         <h2 class="text-lg font-semibold text-white">Upcoming Events</h2>
-                                         <p class="text-sm text-white/70">College & holiday calendar</p>
-                                     </div>
-                                </div>
-                                <button id="add-event-btn" class="bg-[var(--accent-purple-1)] text-[var(--dark-blue)] px-3 py-1.5 rounded-full font-bold text-xs shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200 flex items-center space-x-2">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                                    <span>ADD</span>
-                                </button>
-                             </div>
-                             <div id="eventsList" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
-                             </div>
+                               <div class="flex justify-between items-center mb-4">
+                                    <div class="flex items-center space-x-3">
+                                         <div class="bg-black/20 p-2.5 rounded-lg">
+                                              <svg class="w-6 h-6 text-[var(--light-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                         </div>
+                                         <div>
+                                              <h2 class="text-lg font-semibold text-white">Upcoming Events</h2>
+                                              <p class="text-sm text-white/70">College & holiday calendar</p>
+                                         </div>
+                                    </div>
+                                    <button id="add-event-btn" class="bg-[var(--accent-purple-1)] text-[var(--dark-blue)] px-3 py-1.5 rounded-full font-bold text-xs shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200 flex items-center space-x-2">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                        <span>ADD</span>
+                                    </button>
+                               </div>
+                               <div id="eventsList" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                               </div>
                         </div>
                     </div>
 
@@ -171,23 +171,23 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="glass-card rounded-2xl shadow-xl p-6">
                                  <div class="flex items-center space-x-3 mb-4">
-                                     <div class="bg-black/20 p-2.5 rounded-lg">
-                                         <svg class="w-6 h-6 text-[var(--light-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                                     </div>
-                                     <div>
-                                         <h2 class="text-lg font-semibold text-white">Upload Class Notes</h2>
-                                         <p class="text-sm text-white/70">Share materials for lectures</p>
-                                     </div>
+                                      <div class="bg-black/20 p-2.5 rounded-lg">
+                                           <svg class="w-6 h-6 text-[var(--light-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                      </div>
+                                      <div>
+                                           <h2 class="text-lg font-semibold text-white">Upload Class Notes</h2>
+                                           <p class="text-sm text-white/70">Share materials for lectures</p>
+                                      </div>
                                  </div>
                                  <div class="space-y-4">
-                                     <select id="class-select-notes" class="w-full bg-black/20 text-white placeholder:text-white/50 rounded-lg p-3 border-0 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none">
-                                         <option value="">Select a class...</option>
-                                     </select>
-                                     <label for="notes-upload" class="cursor-pointer w-full text-center block bg-[var(--accent-purple-1)] text-[var(--dark-blue)] py-2 px-5 rounded-full font-bold text-sm shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200">
-                                         Choose File to Upload
-                                     </label>
-                                     <input type="file" id="notes-upload" class="hidden">
-                                     <p id="file-upload-status" class="text-xs text-center text-white/70 h-4"></p>
+                                      <select id="class-select-notes" class="w-full bg-black/20 text-white placeholder:text-white/50 rounded-lg p-3 border-0 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none">
+                                           <option value="">Select a class...</option>
+                                      </select>
+                                      <label for="notes-upload" class="cursor-pointer w-full text-center block bg-[var(--accent-purple-1)] text-[var(--dark-blue)] py-2 px-5 rounded-full font-bold text-sm shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200">
+                                          Choose File to Upload
+                                      </label>
+                                      <input type="file" id="notes-upload" class="hidden">
+                                      <p id="file-upload-status" class="text-xs text-center text-white/70 h-4"></p>
                                  </div>
                             </div>
                             
@@ -197,16 +197,16 @@
                                         <svg class="w-6 h-6 text-[var(--light-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 12h6m-1-5H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2h-5.586a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 009.586 3H7a2 2 0 00-2 2v1m14 14V7m-4-3v2m-6 0v2"></path></svg>
                                     </div>
                                     <div>
-                                        <h2 class="text-lg font-semibold text-white">Shared Class Notes</h2>
-                                        <p class="text-sm text-white/70">View materials for students</p>
+                                        <h2 class="text-lg font-semibold text-white">Assignments</h2>
+                                        <p class="text-sm text-white/70"></p>
                                     </div>
                                 </div>
                                 <div class="space-y-4">
                                     <select id="class-select-shared" class="w-full bg-black/20 text-white rounded-lg p-3 border-0 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none">
-                                        <option value="">Select a class to view notes...</option>
+                                        <option value="">Select a class to view submissions...</option>
                                     </select>
                                     <div id="shared-notes-display" class="mt-1 p-2 bg-black/20 rounded-lg min-h-[100px]">
-                                        <p class="text-center text-white/70 p-4">Select a class to see shared notes.</p>
+                                        <p class="text-center text-white/70 p-4">Select a class to view submissions.</p>
                                     </div>
                                 </div>
                             </div>
@@ -223,27 +223,6 @@
                                 </div>
                             </div>
                             <div id="leaveRequestsList" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
-                            </div>
-                        </div>
-
-                        <div class="glass-card rounded-2xl shadow-xl p-6">
-                            <div class="flex items-center space-x-3 mb-4">
-                                <div class="bg-black/20 p-2.5 rounded-lg">
-                                    <svg class="w-6 h-6 text-[var(--light-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                </div>
-                                <div>
-                                    <h2 class="text-lg font-semibold text-white">Attendance Records</h2>
-                                    <p class="text-sm text-white/70">View status for any session</p>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <select id="class-select-records" class="w-full bg-black/20 text-white rounded-lg p-3 border-0 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none">
-                                    <option value="">Select a class...</option>
-                                </select>
-                                <input type="date" id="date-select-records" value="dd-mm-yyyy" class="w-full bg-black/20 text-white rounded-lg p-3 border-0 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none" style="color-scheme: dark;">
-                            </div>
-                            <div id="attendance-display" class="mt-4">
-                                <p class="text-center text-white/70 p-4">Please select a class and date.</p>
                             </div>
                         </div>
 
@@ -299,7 +278,7 @@
                         <option value="">Select subject...</option>
                     </select>
                 </div>
-                 <div>
+               <div>
                     <label for="new-class-time" class="text-sm font-semibold text-white/90">Time Slot</label>
                     <select id="new-class-time" class="mt-1 w-full bg-black/20 text-white rounded-lg p-3 border-2 border-white/20 focus:ring-2 focus:ring-[var(--accent-purple-1)] focus:outline-none" required>
                         <option value="">Select a time slot...</option>
@@ -470,7 +449,7 @@
                 }, 3000);
             };
             
-            const classSelects = [ document.getElementById('class-select-notes'), document.getElementById('class-select-records'), document.getElementById('new-class-subject'), document.getElementById('class-select-shared') ];
+            const classSelects = [ document.getElementById('class-select-notes'), document.getElementById('new-class-subject'), document.getElementById('class-select-shared') ];
             Object.keys(allClassInfo).forEach(id => {
                 const info = allClassInfo[id];
                 const option = new Option(info.subject, id);
@@ -498,8 +477,8 @@
                         </div>
                         <div class="flex items-center space-x-2">
                            <button data-class-id="${cls.id}" data-class-subject="${cls.subject}" data-class-date="${currentDateKey}" data-class-time="${cls.time}" class="generate-qr-btn px-5 py-2 bg-[var(--accent-purple-1)] text-[var(--dark-blue)] font-bold text-sm rounded-full shadow-lg hover:shadow-xl hover:bg-[var(--light-purple)] hover:-translate-y-0.5 transition-all duration-200 flex items-center space-x-2">
-                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                 <span>QR</span>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                <span>QR</span>
                            </button>
                            <button data-class-id="${cls.id}" data-class-subject="${cls.subject}" data-class-date="${currentDateKey}" data-class-time="${cls.time}" class="remove-class-btn bg-red-500 text-white w-9 h-9 rounded-full hover:bg-red-600 transition-transform hover:scale-110 flex justify-center items-center">&#10005;</button>
                         </div>`;
@@ -635,54 +614,6 @@
                 } catch (error) {
                     console.error('Error rejecting leave request:', error);
                     showToast('Network error. Please try again.', 'error');
-                }
-            };
-
-            // --- DATABASE TEAM: Endpoint: GET /api/attendance/class/:subject/:date ---
-            const renderAttendanceRecords = async () => {
-                const classId = document.getElementById('class-select-records').value;
-                const date = document.getElementById('date-select-records').value;
-                const displayContainer = document.getElementById('attendance-display');
-                if (!classId || !date) {
-                    displayContainer.innerHTML = `<p class="text-center text-white/70 p-4">Please select a class and date.</p>`;
-                    return;
-                }
-                displayContainer.innerHTML = `<p class="text-center text-white/70 p-4">Loading records...</p>`;
-                try {
-                    // Get subject name from class ID
-                    const subject = allClassInfo[classId] ? allClassInfo[classId].subject : classId;
-                    const response = await fetch(`/api/attendance/class/${encodeURIComponent(subject)}/${date}`);
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    const result = await response.json();
-                    if (!result.success) {
-                        displayContainer.innerHTML = `<p class="text-center text-red-500 p-4">Error: ${result.message}</p>`;
-                        return;
-                    }
-                    const records = result.records || [];
-                    if (records.length === 0) {
-                        displayContainer.innerHTML = `<p class="text-center text-white/70 p-4">No attendance records found for ${subject} on ${date}.</p>`;
-                        return;
-                    }
-                    const recordsHTML = records.map(record => `
-                        <div class="p-3 bg-black/20 rounded-lg flex justify-between items-center">
-                            <div>
-                                <p class="font-semibold text-white">${record.student_name}</p>
-                                <p class="text-sm text-white/70">ID: ${record.student_id || 'N/A'}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-sm text-white/70">${new Date(record.timestamp).toLocaleTimeString()}</p>
-                                <p class="text-xs text-green-400">Confidence: ${(record.confidence * 100).toFixed(1)}%</p>
-                            </div>
-                        </div>
-                    `).join('');
-                    displayContainer.innerHTML = `
-                        <div class="mb-4 p-3 bg-green-500/20 rounded-lg border border-green-500/30">
-                            <p class="text-center text-green-400 font-semibold">${subject} - ${records.length} students marked attendance</p>
-                        </div>
-                        <div class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar pr-2">${recordsHTML}</div>`;
-                } catch (error) {
-                    console.error('Failed to fetch attendance records:', error);
-                    displayContainer.innerHTML = `<p class="text-center text-red-500 p-4">Error loading records: ${error.message}</p>`;
                 }
             };
 
@@ -837,30 +768,30 @@
                     displayContainer.innerHTML = `<p class="text-center text-white/70 p-4">Select a class to see shared notes.</p>`;
                     return;
                 }
-                displayContainer.innerHTML = `<p class=\"text-center text-white/70 p-4\">Loading...</p>`;
+                displayContainer.innerHTML = `<p class="text-center text-white/70 p-4">Loading...</p>`;
                 try {
                     const subject = allClassInfo[classId] ? allClassInfo[classId].subject : '';
                     const resp = await fetch(`/api/notes/list?class_id=${encodeURIComponent(classId)}&subject=${encodeURIComponent(subject)}&mine=true`);
                     const result = await resp.json();
                     if (!resp.ok || !result.success) {
-                        displayContainer.innerHTML = `<p class=\"text-center text-red-500 p-4\">Failed to load notes.</p>`;
+                        displayContainer.innerHTML = `<p class="text-center text-red-500 p-4">Failed to load notes.</p>`;
                         return;
                     }
                     const notes = result.notes || [];
                     if (notes.length === 0) {
-                        displayContainer.innerHTML = `<p class=\"text-center text-white/70 p-4\">No notes shared for this subject yet.</p>`;
+                        displayContainer.innerHTML = `<p class="text-center text-white/70 p-4">No notes shared for this subject yet.</p>`;
                         return;
                     }
                     const notesListHTML = notes.map(n => `
-                        <a class=\"p-2 bg-black/20 rounded-md text-sm flex items-center gap-2 hover:bg-black/30 transition\" href=\"/api/notes/file/${n.id}\" target=\"_blank\">
-                            <svg class=\"w-4 h-4 flex-shrink-0\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z\"></path></svg>
-                            <span class=\"truncate\">${n.file_name}</span>
-                            <span class=\"ml-auto text-white/50 text-xs\">${new Date(n.uploaded_at).toLocaleString()}</span>
+                        <a class="p-2 bg-black/20 rounded-md text-sm flex items-center gap-2 hover:bg-black/30 transition" href="/api/notes/file/${n.id}" target="_blank">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <span class="truncate">${n.file_name}</span>
+                            <span class="ml-auto text-white/50 text-xs">${new Date(n.uploaded_at).toLocaleString()}</span>
                         </a>`).join('');
-                    displayContainer.innerHTML = `<div class=\"space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2\">${notesListHTML}</div>`;
+                    displayContainer.innerHTML = `<div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">${notesListHTML}</div>`;
                 } catch (e) {
                     console.error('Failed to load shared notes', e);
-                    displayContainer.innerHTML = `<p class=\"text-center text-red-500 p-4\">Error loading notes.</p>`;
+                    displayContainer.innerHTML = `<p class="text-center text-red-500 p-4">Error loading notes.</p>`;
                 }
             };
 
@@ -1199,8 +1130,6 @@
                 }
             });
 
-            document.getElementById('class-select-records').addEventListener('change', renderAttendanceRecords);
-            document.getElementById('date-select-records').addEventListener('change', renderAttendanceRecords);
             document.getElementById('class-select-shared').addEventListener('change', renderSharedNotes);
             
             // Attendance overview event listeners
@@ -1208,188 +1137,186 @@
             document.getElementById('refresh-overview-btn').addEventListener('click', renderAttendanceOverview);
 
              // =================================================================
-             // --- 4. LOGOUT FUNCTIONALITY ---
-             // =================================================================
-             
-             window.logout = async () => {
-                if (confirm('Are you sure you want to logout?')) {
-                    try {
-                        // Update logout button with loading state
-                        const logoutButton = document.querySelector('button[onclick="logout()"]');
-                        if (logoutButton) {
-                            const originalHTML = logoutButton.innerHTML;
-                            logoutButton.innerHTML = `
-                                <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-dashoffset="32">
-                                        <animate attributeName="stroke-dashoffset" dur="2s" values="32;0" repeatCount="indefinite"/>
-                                    </circle>
-                                </svg>
-                                <span class="hidden sm:inline ml-2">Logging out...</span>
-                            `;
-                        }
-                        
-                        // Clear any stored client-side session data
-                        localStorage.clear();
-                        sessionStorage.clear();
-                        
-                        // Clear any cached data
-                        if ('caches' in window) {
-                            caches.keys().then(names => {
-                                names.forEach(name => {
-                                    caches.delete(name);
-                                });
-                            });
-                        }
-                        
-                        // Show logout message
-                        showToast('Logging out... Ending session.');
-                        
-                        // Call logout API to end server-side session
-                        const response = await fetch('/api/logout', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            credentials: 'same-origin' // Include session cookies
-                        });
-                        
-                        const result = await response.json();
-                        
-                        if (result.success) {
-                            console.log('✅ Session terminated successfully:', result.message);
-                            showToast('✅ Session ended successfully!');
-                        } else {
-                            console.warn('⚠️ Logout API returned error:', result.message);
-                            showToast('⚠️ Session ended with warnings.');
-                        }
-                        
-                    } catch (error) {
-                        console.error('❌ Error during logout API call:', error);
-                        showToast('⚠️ Network error during logout, but continuing...');
-                        // Continue with logout even if API call fails
-                    } finally {
-                        // Force clear any remaining session data and cookies
-                        document.cookie.split(";").forEach(function(c) { 
-                            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-                        });
-                        
-                        // Always redirect to main login dashboard regardless of API response
-                        // Use replace to prevent back button from returning to dashboard
-                        setTimeout(() => {
-                            window.location.replace('/');
-                        }, 1500);
-                    }
-                }
+              // --- 4. LOGOUT FUNCTIONALITY ---
+              // =================================================================
+              
+              window.logout = async () => {
+                  if (confirm('Are you sure you want to logout?')) {
+                      try {
+                          // Update logout button with loading state
+                          const logoutButton = document.querySelector('button[onclick="logout()"]');
+                          if (logoutButton) {
+                              const originalHTML = logoutButton.innerHTML;
+                              logoutButton.innerHTML = `
+                                  <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-dashoffset="32">
+                                          <animate attributeName="stroke-dashoffset" dur="2s" values="32;0" repeatCount="indefinite"/>
+                                      </circle>
+                                  </svg>
+                                  <span class="hidden sm:inline ml-2">Logging out...</span>
+                              `;
+                          }
+                          
+                          // Clear any stored client-side session data
+                          localStorage.clear();
+                          sessionStorage.clear();
+                          
+                          // Clear any cached data
+                          if ('caches' in window) {
+                              caches.keys().then(names => {
+                                  names.forEach(name => {
+                                      caches.delete(name);
+                                  });
+                              });
+                          }
+                          
+                          // Show logout message
+                          showToast('Logging out... Ending session.');
+                          
+                          // Call logout API to end server-side session
+                          const response = await fetch('/api/logout', {
+                              method: 'POST',
+                              headers: {
+                                  'Content-Type': 'application/json',
+                              },
+                              credentials: 'same-origin' // Include session cookies
+                          });
+                          
+                          const result = await response.json();
+                          
+                          if (result.success) {
+                              console.log('✅ Session terminated successfully:', result.message);
+                              showToast('✅ Session ended successfully!');
+                          } else {
+                              console.warn('⚠️ Logout API returned error:', result.message);
+                              showToast('⚠️ Session ended with warnings.');
+                          }
+                          
+                      } catch (error) {
+                          console.error('❌ Error during logout API call:', error);
+                          showToast('⚠️ Network error during logout, but continuing...');
+                          // Continue with logout even if API call fails
+                      } finally {
+                          // Force clear any remaining session data and cookies
+                          document.cookie.split(";").forEach(function(c) { 
+                              document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                          });
+                          
+                          // Always redirect to main login dashboard regardless of API response
+                          // Use replace to prevent back button from returning to dashboard
+                          setTimeout(() => {
+                              window.location.replace('/');
+                          }, 1500);
+                      }
+                  }
              };
 
              // =================================================================
-             // --- 5. ATTENDANCE FUNCTIONS ---
-             // =================================================================
-             
-             window.toggleAttendanceDetails = function(elementId) {
-                 const attendanceDiv = document.getElementById(elementId);
-                 const arrowIcon = document.getElementById('arrow-' + elementId);
-                 
-                 if (attendanceDiv.classList.contains('hidden')) {
-                     attendanceDiv.classList.remove('hidden');
-                     arrowIcon.style.transform = 'rotate(180deg)';
-                 } else {
-                     attendanceDiv.classList.add('hidden');
-                     arrowIcon.style.transform = 'rotate(0deg)';
-                 }
+              // --- 5. ATTENDANCE FUNCTIONS ---
+              // =================================================================
+              
+              window.toggleAttendanceDetails = function(elementId) {
+                  const attendanceDiv = document.getElementById(elementId);
+                  const arrowIcon = document.getElementById('arrow-' + elementId);
+                  
+                  if (attendanceDiv.classList.contains('hidden')) {
+                       attendanceDiv.classList.remove('hidden');
+                       arrowIcon.style.transform = 'rotate(180deg)';
+                  } else {
+                       attendanceDiv.classList.add('hidden');
+                       arrowIcon.style.transform = 'rotate(0deg)';
+                  }
              };
 
-             window.downloadAttendance = function(subjectName, subjectData) {
-                 try {
-                     const selectedDate = document.getElementById('overview-date-select').value;
-                     const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
-                         year: 'numeric',
-                         month: 'long',
-                         day: 'numeric'
-                     });
-                     
-                     // Create properly formatted CSV content
-                     let csvContent = '';
-                     
-                     // Header information
-                     csvContent += `"Attendance Report"\r\n`;
-                     csvContent += `"Subject","${subjectName}"\r\n`;
-                     csvContent += `"Date","${formattedDate}"\r\n`;
-                     csvContent += `"Generated On","${new Date().toLocaleString()}"\r\n`;
-                     csvContent += `\r\n`;
-                     
-                     // Main attendance data
-                     csvContent += `"Serial No.","Student Name","Attendance Status"\r\n`;
-                     
-                     let serialNo = 1;
-                     
-                     // Add present students
-                     if (subjectData.present_students && subjectData.present_students.length > 0) {
-                         subjectData.present_students.forEach(student => {
-                             csvContent += `"${serialNo}","${student}","Present"\r\n`;
-                             serialNo++;
-                         });
-                     }
-                     
-                     // Add absent students
-                     if (subjectData.absent_students && subjectData.absent_students.length > 0) {
-                         subjectData.absent_students.forEach(student => {
-                             csvContent += `"${serialNo}","${student}","Absent"\r\n`;
-                             serialNo++;
-                         });
-                     }
-                     
-                     // Add summary section
-                     const totalAbsent = subjectData.absent_students ? subjectData.absent_students.length : 0;
-                     const totalStudents = subjectData.total_present + totalAbsent;
-                     const attendancePercentage = totalStudents > 0 ? ((subjectData.total_present / totalStudents) * 100).toFixed(2) : 0;
-                     
-                     csvContent += `\r\n`;
-                     csvContent += `"ATTENDANCE SUMMARY"\r\n`;
-                     csvContent += `"Total Students","${totalStudents}"\r\n`;
-                     csvContent += `"Present","${subjectData.total_present}"\r\n`;
-                     csvContent += `"Absent","${totalAbsent}"\r\n`;
-                     csvContent += `"Attendance Percentage","${attendancePercentage}%"\r\n`;
-                     
-                     // Create and download file
-                     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                     const link = document.createElement('a');
-                     const url = URL.createObjectURL(blob);
-                     const fileName = `${subjectName.replace(/[^a-zA-Z0-9]/g, '_')}_Attendance_${selectedDate}.csv`;
-                     link.setAttribute('href', url);
-                     link.setAttribute('download', fileName);
-                     link.style.visibility = 'hidden';
-                     document.body.appendChild(link);
-                     link.click();
-                     document.body.removeChild(link);
-                     URL.revokeObjectURL(url);
-                     
-                     showToast(`Attendance for ${subjectName} downloaded successfully!`);
-                 } catch (error) {
-                     console.error('Error downloading attendance:', error);
-                     showToast('Error downloading attendance file');
-                 }
+              window.downloadAttendance = function(subjectName, subjectData) {
+                  try {
+                       const selectedDate = document.getElementById('overview-date-select').value;
+                       const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
+                           year: 'numeric',
+                           month: 'long',
+                           day: 'numeric'
+                       });
+                       
+                       // Create properly formatted CSV content
+                       let csvContent = '';
+                       
+                       // Header information
+                       csvContent += `"Attendance Report"\r\n`;
+                       csvContent += `"Subject","${subjectName}"\r\n`;
+                       csvContent += `"Date","${formattedDate}"\r\n`;
+                       csvContent += `"Generated On","${new Date().toLocaleString()}"\r\n`;
+                       csvContent += `\r\n`;
+                       
+                       // Main attendance data
+                       csvContent += `"Serial No.","Student Name","Attendance Status"\r\n`;
+                       
+                       let serialNo = 1;
+                       
+                       // Add present students
+                       if (subjectData.present_students && subjectData.present_students.length > 0) {
+                           subjectData.present_students.forEach(student => {
+                               csvContent += `"${serialNo}","${student}","Present"\r\n`;
+                               serialNo++;
+                           });
+                       }
+                       
+                       // Add absent students
+                       if (subjectData.absent_students && subjectData.absent_students.length > 0) {
+                           subjectData.absent_students.forEach(student => {
+                               csvContent += `"${serialNo}","${student}","Absent"\r\n`;
+                               serialNo++;
+                           });
+                       }
+                       
+                       // Add summary section
+                       const totalAbsent = subjectData.absent_students ? subjectData.absent_students.length : 0;
+                       const totalStudents = subjectData.total_present + totalAbsent;
+                       const attendancePercentage = totalStudents > 0 ? ((subjectData.total_present / totalStudents) * 100).toFixed(2) : 0;
+                       
+                       csvContent += `\r\n`;
+                       csvContent += `"ATTENDANCE SUMMARY"\r\n`;
+                       csvContent += `"Total Students","${totalStudents}"\r\n`;
+                       csvContent += `"Present","${subjectData.total_present}"\r\n`;
+                       csvContent += `"Absent","${totalAbsent}"\r\n`;
+                       csvContent += `"Attendance Percentage","${attendancePercentage}%"\r\n`;
+                       
+                       // Create and download file
+                       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                       const link = document.createElement('a');
+                       const url = URL.createObjectURL(blob);
+                       const fileName = `${subjectName.replace(/[^a-zA-Z0-9]/g, '_')}_Attendance_${selectedDate}.csv`;
+                       link.setAttribute('href', url);
+                       link.setAttribute('download', fileName);
+                       link.style.visibility = 'hidden';
+                       document.body.appendChild(link);
+                       link.click();
+                       document.body.removeChild(link);
+                       URL.revokeObjectURL(url);
+                       
+                       showToast(`Attendance for ${subjectName} downloaded successfully!`);
+                  } catch (error) {
+                       console.error('Error downloading attendance:', error);
+                       showToast('Error downloading attendance file');
+                  }
              };
 
              // =================================================================
-             // --- 6. INITIAL PAGE LOAD ---
-             // =================================================================
-             
-             // Set default date to today
-             const today = new Date().toISOString().split('T')[0];
-             document.getElementById('date-select-records').value = today;
-             document.getElementById('overview-date-select').value = today;
-             
-             fetchTeacherInfo();
-             renderTodaysClasses();
-             renderUpcomingEvents();
-             renderLeaveRequests();
-             renderSharedNotes();
-             renderAttendanceChart();
-             renderAttendanceOverview(); // Load attendance overview on page load
+              // --- 6. INITIAL PAGE LOAD ---
+              // =================================================================
+              
+              // Set default date to today
+              const today = new Date().toISOString().split('T')[0];
+              document.getElementById('overview-date-select').value = today;
+              
+              fetchTeacherInfo();
+              renderTodaysClasses();
+              renderUpcomingEvents();
+              renderLeaveRequests();
+              renderSharedNotes();
+              renderAttendanceChart();
+              renderAttendanceOverview(); // Load attendance overview on page load
 
         });
     </script>
 </body>
 </html>
-
