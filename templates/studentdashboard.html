@@ -136,6 +136,50 @@
                 margin-left: 0 !important;
             }
         }
+
+        /* Zoom Controls Styles */
+        #zoom-in-btn, #zoom-out-btn, #reset-zoom-btn {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        #zoom-in-btn:hover, #zoom-out-btn:hover, #reset-zoom-btn:hover {
+            background: rgba(0, 0, 0, 0.7) !important;
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        #zoom-in-btn:disabled, #zoom-out-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5 !important;
+        }
+
+        #zoom-in-btn:disabled:hover, #zoom-out-btn:disabled:hover {
+            transform: none;
+            background: rgba(0, 0, 0, 0.5) !important;
+        }
+
+        /* Video container responsive sizing */
+        #video-container {
+            min-height: 300px;
+            max-height: 500px;
+        }
+
+        @media (max-width: 640px) {
+            #video-container {
+                min-height: 250px;
+                max-height: 400px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            #video-container {
+                min-height: 350px;
+                max-height: 600px;
+            }
+        }
     </style>
 </head>
 
@@ -281,7 +325,29 @@
             <div class="mb-4 text-center">
                 <p class="text-sm text-white/70 mb-2">Point your rear camera at the QR code displayed on the teacher's screen</p>
             </div>
-            <video id="qr-video-stream" class="w-full rounded-lg" autoplay playsinline></video>
+            <div class="relative overflow-hidden rounded-lg">
+                <div id="video-container" class="relative w-full aspect-video min-h-[300px]">
+                    <video id="qr-video-stream" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline></video>
+                </div>
+                <!-- Zoom Controls -->
+                <div class="absolute bottom-4 right-4 flex flex-col gap-2">
+                    <button id="zoom-in-btn" onclick="adjustZoom(1.2)" class="p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors" title="Zoom In">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                    </button>
+                    <button id="zoom-out-btn" onclick="adjustZoom(0.8)" class="p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors" title="Zoom Out">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6" />
+                        </svg>
+                    </button>
+                    <button id="reset-zoom-btn" onclick="resetZoom()" class="p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors" title="Reset Zoom">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
             <canvas id="qr-canvas" style="display: none;"></canvas>
             <p id="qr-scanner-status" class="mt-4 text-center text-white/70"></p>
             <div id="qr-result" class="mt-4 p-3 rounded-lg hidden">
@@ -648,6 +714,8 @@
             let currentFaceStream = null;
             let currentSubject = null;
             let qrScanInterval = null;
+            let currentZoom = 1.0;
+            let videoTrack = null;
 
             window.openQRScanner = async (subjectName) => {
                 // Check if attendance is already marked
@@ -677,7 +745,19 @@
                     });
                     video.srcObject = currentQRStream;
                     
+                    // Get video track for zoom controls
+                    videoTrack = currentQRStream.getVideoTracks()[0];
+                    currentZoom = 1.0;
+                    
+                    // Initialize video positioning for zoom
+                    setTimeout(() => {
+                        applyCSSZoom();
+                    }, 100);
+                    
                     statusEl.textContent = 'Camera ready! Point at the QR code on teacher\'s screen.';
+                    
+                    // Initialize zoom controls
+                    updateZoomButtons();
                     
                     // Start QR code scanning
                     startQRScanning();
@@ -696,7 +776,21 @@
                             } 
                         });
                         video.srcObject = currentQRStream;
+                        
+                        // Get video track for zoom controls
+                        videoTrack = currentQRStream.getVideoTracks()[0];
+                        currentZoom = 1.0;
+                        
+                        // Initialize video positioning for zoom
+                        setTimeout(() => {
+                            applyCSSZoom();
+                        }, 100);
+                        
                         statusEl.textContent = 'Using front camera. Point at the QR code.';
+                        
+                        // Initialize zoom controls
+                        updateZoomButtons();
+                        
                         startQRScanning();
                     } catch (fallbackError) {
                         console.error('Error accessing any camera:', fallbackError);
@@ -805,9 +899,179 @@
                     currentQRStream = null;
                 }
                 
+                // Reset zoom variables and video positioning
+                videoTrack = null;
+                currentZoom = 1.0;
+                
+                // Reset video positioning
+                const video = document.getElementById('qr-video-stream');
+                if (video) {
+                    video.style.transform = 'scale(1)';
+                    video.style.left = '0px';
+                    video.style.top = '0px';
+                }
+                
                 modal.classList.add('hidden');
                 resultEl.classList.add('hidden');
             };
+
+            // --- ZOOM CONTROLS FOR QR SCANNER ---
+            window.adjustZoom = (factor) => {
+                const video = document.getElementById('qr-video-stream');
+                
+                if (!videoTrack || !videoTrack.getCapabilities) {
+                    // Fallback to CSS zoom if native zoom not supported
+                    currentZoom *= factor;
+                    currentZoom = Math.max(0.5, Math.min(3, currentZoom));
+                    applyCSSZoom();
+                    console.log(`CSS Zoom adjusted to: ${currentZoom}x`);
+                    updateZoomButtons();
+                    return;
+                }
+
+                const capabilities = videoTrack.getCapabilities();
+                if (!capabilities.zoom) {
+                    // Fallback to CSS zoom if native zoom not supported
+                    currentZoom *= factor;
+                    currentZoom = Math.max(0.5, Math.min(3, currentZoom));
+                    applyCSSZoom();
+                    console.log(`CSS Zoom adjusted to: ${currentZoom}x`);
+                    updateZoomButtons();
+                    return;
+                }
+
+                currentZoom *= factor;
+                
+                // Clamp zoom between min and max values
+                const minZoom = capabilities.zoom.min || 1;
+                const maxZoom = capabilities.zoom.max || 3;
+                currentZoom = Math.max(minZoom, Math.min(maxZoom, currentZoom));
+
+                // Apply zoom constraint
+                const constraints = {
+                    advanced: [{ zoom: currentZoom }]
+                };
+
+                videoTrack.applyConstraints(constraints)
+                    .then(() => {
+                        console.log(`Native zoom adjusted to: ${currentZoom}x`);
+                        updateZoomButtons();
+                    })
+                    .catch(error => {
+                        console.error('Error applying native zoom, falling back to CSS zoom:', error);
+                        // Fallback to CSS zoom
+                        applyCSSZoom();
+                        updateZoomButtons();
+                    });
+            };
+
+            function applyCSSZoom() {
+                const video = document.getElementById('qr-video-stream');
+                const container = document.getElementById('video-container');
+                
+                if (!video || !container) return;
+                
+                // Reset positioning first
+                video.style.left = '0px';
+                video.style.top = '0px';
+                
+                // Scale the video from center
+                video.style.transform = `scale(${currentZoom})`;
+                video.style.transformOrigin = 'center center';
+                
+                // For zoom > 1, we need to adjust positioning to center the cropped area
+                if (currentZoom > 1) {
+                    const containerWidth = container.offsetWidth;
+                    const containerHeight = container.offsetHeight;
+                    
+                    // Calculate how much the video extends beyond the container
+                    const extraWidth = (containerWidth * currentZoom - containerWidth) / 2;
+                    const extraHeight = (containerHeight * currentZoom - containerHeight) / 2;
+                    
+                    // Center the zoomed content by offsetting it
+                    video.style.left = `-${extraWidth}px`;
+                    video.style.top = `-${extraHeight}px`;
+                }
+            }
+
+            // Handle window resize to maintain proper zoom positioning
+            window.addEventListener('resize', () => {
+                if (currentQRStream && currentZoom !== 1.0) {
+                    // Recalculate zoom positioning after window resize
+                    setTimeout(() => {
+                        applyCSSZoom();
+                    }, 100);
+                }
+            });
+
+            window.resetZoom = () => {
+                currentZoom = 1.0;
+                
+                if (!videoTrack || !videoTrack.getCapabilities) {
+                    // Reset CSS zoom
+                    applyCSSZoom();
+                    console.log('CSS Zoom reset to 1x');
+                    updateZoomButtons();
+                    return;
+                }
+
+                const capabilities = videoTrack.getCapabilities();
+                if (!capabilities.zoom) {
+                    // Reset CSS zoom
+                    applyCSSZoom();
+                    console.log('CSS Zoom reset to 1x');
+                    updateZoomButtons();
+                    return;
+                }
+
+                const constraints = {
+                    advanced: [{ zoom: currentZoom }]
+                };
+
+                videoTrack.applyConstraints(constraints)
+                    .then(() => {
+                        console.log('Native zoom reset to 1x');
+                        updateZoomButtons();
+                    })
+                    .catch(error => {
+                        console.error('Error resetting native zoom, falling back to CSS reset:', error);
+                        // Fallback to CSS zoom reset
+                        applyCSSZoom();
+                        updateZoomButtons();
+                    });
+            };
+
+            function updateZoomButtons() {
+                const zoomInBtn = document.getElementById('zoom-in-btn');
+                const zoomOutBtn = document.getElementById('zoom-out-btn');
+                const resetBtn = document.getElementById('reset-zoom-btn');
+
+                // Always show zoom controls initially
+                if (zoomInBtn) zoomInBtn.style.display = 'block';
+                if (zoomOutBtn) zoomOutBtn.style.display = 'block';
+                if (resetBtn) resetBtn.style.display = 'block';
+
+                // Use CSS zoom fallback limits (always works)
+                const minZoom = 0.5;
+                const maxZoom = 3;
+
+                // Enable zoom controls (CSS zoom always works)
+                if (zoomInBtn) {
+                    zoomInBtn.disabled = currentZoom >= maxZoom;
+                    zoomInBtn.style.opacity = currentZoom >= maxZoom ? '0.5' : '1';
+                    zoomInBtn.title = 'Zoom In';
+                }
+                if (zoomOutBtn) {
+                    zoomOutBtn.disabled = currentZoom <= minZoom;
+                    zoomOutBtn.style.opacity = currentZoom <= minZoom ? '0.5' : '1';
+                    zoomOutBtn.title = 'Zoom Out';
+                }
+                if (resetBtn) {
+                    resetBtn.disabled = false;
+                    resetBtn.style.opacity = '1';
+                    resetBtn.title = 'Reset Zoom';
+                }
+            }
 
             // --- 6. FACE RECOGNITION MODAL LOGIC ---
             window.openFaceRecognition = async (subjectName) => {
