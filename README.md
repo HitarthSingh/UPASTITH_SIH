@@ -255,13 +255,14 @@ For issues and questions:
   - SQLite database integration
     
 - **vAlpha**: Shifting on INTRANET
-- SSL certificates (self signed) are used for HTTPS in local host
-- New camera zooming feature for QR scanning
-- eye blink and face motion capturing in real time
+  - SSL certificates (self signed) are used for HTTPS in local host
+  - New camera zooming feature for QR scanning
+  - eye blink and face motion capturing in real time
 - new and enhanced repository
-
+  
 ---
 
 **Note**: This system is designed for educational and small-scale use. For production deployment, consider additional security measures, user authentication, and scalability improvements.
+
 
 
