@@ -1,159 +1,74 @@
 
-#Upastith – Automated Attendance System
+# Automated Attendance System
 
-A modern web-based attendance tracking system leveraging facial recognition, QR codes, and real-time notes upload, built with Flask, OpenCV, and the face_recognition library.
+## Overview
+A web-based attendance system using face recognition, QR codes, and digital leave management. Designed for educational institutions to automate and streamline attendance, leave requests, and class/event management for students and teachers.
 
 ## Features
 
-•⁠Face Registration: Register users with face data via webcam.
-•⁠Real-time Face Recognition: Mark attendance instantly when the user is recognized.
-•⁠QR Code Attendance: Students can scan a unique QR code to mark attendance as an alternative method.
-•⁠Attendance Management: View, filter, and export attendance records.
-•⁠Leave Application: Students submit leave requests; teachers can approve/reject them.
-•⁠Suggestion Box: Students can submit feedback and suggestions.
-•⁠Real-time Notes Upload: Teachers can upload notes/documents for students in real-time.
-•⁠Modern UI: Responsive, glassmorphism-inspired design with intuitive navigation.
-•⁠SQLite Database: Local storage for users, attendance, leaves, notes, and authentication.
-•⁠Statistics Dashboard: Quick access to stats and attendance summaries.
-•⁠Export Data: Download attendance records and notes as CSV or PDF.
+### Student
+- Face recognition attendance (with QR validation)
+- Dashboard: today's classes, events, attendance summary
+- Timetable view
+- Repository: access shared class notes
+- Leave application (with document upload)
+- Results and suggestion box
 
-## Prerequisites
+### Teacher
+- Dashboard: analytics, class/event management
+- Add/remove/view classes and events
+- Approve/reject student leave requests
+- View attendance records by class/date
+- Upload and share class notes
+- Generate QR codes for attendance
 
-•⁠Python 3.7+
-•⁠Webcam or camera access
-•⁠QR scanner-enabled smartphone or webcam
-•⁠Modern browser with camera permissions
+### Admin
+- Sample admin user for demo/testing
 
-## Installation
+## Tech Stack
+- **Backend:** Python (Flask, flask-cors)
+- **Frontend:** HTML (Jinja2 templates), Tailwind CSS, Chart.js, jsQR, qrcodejs
+- **Face Recognition:** face_recognition, OpenCV, dlib, numpy
+- **Database:** SQLite (attendance.db, authentication.db, leaves.db, classes.db)
+- **QR Code:** qrcode (Python), qrcodejs (JS)
+- **Other:** pandas, werkzeug, secrets
 
-1.*Clone the repository*
-bash
-git clone <your-repo-url>
-cd "Automated Attendance"
+## Setup & Usage
+1. Clone the repository:
+	```sh
+	git clone https://github.com/vabbings/SIH.git
+	cd SIH
+	```
+2. Install dependencies:
+	```sh
+	pip install -r requirements.txt
+	```
+3. Run the server:
+	```sh
+	python minimal_server.py
+	```
+	The app runs on `http://localhost:3000` (or `5000` for debug mode).
 
+5. Sample login credentials:
+	- Students: `student1` / `password123`
+	- Teachers: `teacher1` / `teacher123`
+	- Admin: `admin` / `admin123`
 
-2.*Create a virtual environment*
-bash
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# macOS/Linux
-source .venv/bin/activate
-
-
-3.*Install dependencies*
-bash
-pip install -r requirements.txt
-
-
-If you face issues with face_recognition, ensure you have CMake and Visual Studio Build Tools (Windows), or Homebrew/CMake (macOS/Linux) installed.
-
-4.*Run the application*
-bash
-python app.py
-
-
-5.*Access the app*
-Open your browser at http://localhost:5000
-
- ##Usage
-
-•⁠*Dashboard*: /dashboard – View stats, export data, and access notes.
-•⁠*Register*: /register – Add new users with face data.
-•⁠*Attendance*: /attendance – Mark attendance via webcam or QR scan.
-•⁠*Records*: /records – View, filter, and export attendance data.
-•⁠*Leave Application*: /leaveapplication – Submit leave requests.
-•⁠*Suggestion Box8: /suggestionbox – Share feedback or suggestions.
-•⁠*Notes Upload*: /notesupload – Upload notes/documents in real-time for students.
-•⁠*QR Attendance*: /qrattendance – Students scan QR to mark attendance instantly.
-
-## API Endpoints
-
-•⁠POST /api/register – Register user with face data
-•⁠POST /api/recognize – Recognize face and mark attendance
-•⁠GET /api/attendance – Retrieve attendance records
-•⁠GET /api/users – List registered users
-•⁠GET /api/export/csv – Export attendance data
-•⁠POST /api/leave/submit – Submit leave request
-•⁠GET /api/leave/requests – Get leave requests
-•⁠POST /api/leave/approve/:id – Approve leave request
-•⁠POST /api/leave/reject/:id – Reject leave request
-•⁠POST /api/qr-attendance – Mark attendance using QR code
-•⁠POST /api/notes/upload – Upload notes for students
-•⁠GET /api/notes/:id – Fetch notes for a specific class or session
-
-## File Structure
-Automated Attendance/
-├── app.py
-├── face_utils.py
-├── db_attendance.py
-├── db_leaves.py
-├── db_notes.py
-├── requirements.txt
-├── attendance.db
-├── authentication.db
-├── classes.db
-├── leaves.db
-├── notes.db
-├── face_encodings/
-│   └── *.pkl
-├── uploaded_notes/
-│   └── *.pdf
-├── templates/
-│   ├── landingpagefinal1.html
-│   ├── teacherloginpage.html
-│   ├── teacherdasboardfinal.html
-│   ├── leaveapplication.html
-│   ├── suggestionbox.html
-│   ├── notesupload.html
-│   ├── qrattendance.html
-│   ├── aboutus.html
-│   └── ...
-└── static/
-    └── ...
-
-##Configuration
-
-•⁠*Face Recognition*: Adjust recognition thresholds and encoding logic in face_utils.py
-•⁠*QR Code Settings*: Configure QR generation and validation parameters.
-•⁠*Flask Settings*: Update debug mode, host, and port in app.py.
-•⁠*Database*: Schema updates and file paths in face_utils.py
- and db_notes.py.
-
-##Troubleshooting
-
-•⁠*Camera Access*: Check browser permissions and close other applications using the camera.
-•⁠*Face Recognition*: Ensure proper lighting and that users are registered with clear images.
-•⁠*QR Attendance*: Make sure the QR code is correctly generated and readable.
-•⁠*Notes Upload*: Verify file types and permissions in the upload directory.
-•⁠*Database Issues*: SQLite databases are auto-created; confirm write permissions and directory paths.
-•⁠*Performance*: Reduce image resolution or ensure system resources are sufficient.
-
-##Security
-
-•⁠Face encodings are stored locally as pickle files—secure them from unauthorized access.
-•⁠Uploaded notes and attendance data contain personal information—implement proper access controls.
-•⁠For production, integrate authentication mechanisms and encrypt sensitive data.
-
-##Development
-
-•⁠*Add Features*: Modify app.py
- and face_utils.py
-•⁠*UI Customization*: Edit HTML/CSS in templates/
- and static/
-•⁠*Database Updates*: Change schemas or paths in the respective DB helper files.
-•*⁠API Expansion*: Add new endpoints or extend existing ones in app.py.
-•⁠*QR Improvements*: Enhance QR encryption or scanning logic as needed.
+## API Endpoints (Summary)
+- `/api/registerfinal1` — Register face
+- `/api/recognizefinal1` — Recognize face and mark attendance
+- `/api/classes` — Get/add/delete classes
+- `/api/events` — Get/add/delete events
+- `/api/leave/submit` — Submit leave request
+- `/api/leave/requests` — Get pending leave requests
+- `/api/attendance/today` — Get today's attendance
+- `/api/attendance/date/<date>` — Get attendance by date/class
+- `/api/qr/generate` — Generate QR code for attendance
+- `/api/upload/notes` — Upload class notes
+- `/api/notes/<class_id>` — Get notes for a class
 
 ## License
+MIT License
 
-This project is licensed under the MIT License.
-
-## Support
-
-•⁠Review troubleshooting steps above.
-•⁠Check console logs and error outputs for details.
-•⁠Ensure dependencies are installed as specified.
-•⁠Confirm camera and browser permissions are enabled.
-•⁠Secure sensitive data before deployment.
-
+---
+For issues or contributions, open an issue or pull request on GitHub.
